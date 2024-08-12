@@ -1,0 +1,9 @@
+services:
+  weekly:
+    image: node:20
+    volumes:
+      - "./:/weekly"
+    working_dir: "/weekly"
+    command: npm run dev -- --host
+    ports:
+      - 4321:4321
