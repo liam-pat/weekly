@@ -6,10 +6,10 @@ export interface Props {
 }
 const { icon, keywords, author, twitterId, homePage, title, pic, description: siteDescription } = SITE;
 const { content = {}, pageURL } = Astro.props;
-const { title: contentTitle, twitterImg, description: contentDescription, image } = content;
+const { title: contentTitle, description: contentDescription, image } = content;
 
 const pageTitle = contentTitle ? `${title}${contentTitle}` : title;
-const imageSrc = twitterImg || pic;
+const imageSrc = image || pic;
 const description = contentDescription || siteDescription;
 const preloadImage = image ? `${image}?x-oss-process=image/resize,w_3600/format,webp` : false;
 ---

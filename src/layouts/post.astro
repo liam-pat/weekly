@@ -10,7 +10,7 @@ import { SITE } from '@/config';
 import { parseTitle, sortPosts, getIndex } from '@/util';
 
 export interface Props {
-  frontmatter: { date: string; pic: string; desc: string; url: string; twitterImg: string };
+  frontmatter: { date: string; pic: string; desc: string; url: string };
   title: string;
 }
 
@@ -19,12 +19,11 @@ const currentPage = pageUrl.pathname;
 
 let title = parseTitle(currentPage);
 
-const { date, pic, desc, url, twitterImg } = Astro.props.frontmatter;
+const { date, pic, desc, url } = Astro.props.frontmatter;
 const content = {
   title,
   image: pic,
   description: desc,
-  twitterImg,
 };
 const currentUrl = `${SITE.homePage}${currentPage}`;
 
@@ -223,9 +222,9 @@ let prevUrl = postIndex < allPosts.length ? allPosts[allPosts.length - postIndex
           id="giscus-script"
           src="https://giscus.app/client.js"
           data-repo="liam-pat/weekly"
-          data-repo-id="R_kgDOL__thA"
+          data-repo-id="R_kgDOQpkB2g"
           data-category="General"
-          data-category-id="DIC_kwDOL__thM4Cf5aC"
+          data-category-id="DIC_kwDOQpkB2s4Cz3Gz"
           data-mapping="title"
           data-strict="0"
           data-reactions-enabled="1"

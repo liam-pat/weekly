@@ -5,11 +5,10 @@ import tailwind from '@astrojs/tailwind';
 import { defineConfig } from 'astro/config';
 import { parse } from 'node-html-parser';
 import { SITE } from './src/config';
-import rehypeCustomizeImageSrc from './rehype-customize-image-src.js';
 
 const DEFAULT_FORMAT = 'YYYY/MM/DD';
-const WEEKLY_REPO_NAME = 'tw93/weekly';
-const START_DATE = '2022-10-10';
+const WEEKLY_REPO_NAME = 'liam-pat/weekly';
+const START_DATE = '2024-06-06';
 
 function formatDate(date) {
 	return dayjs(date).format(DEFAULT_FORMAT);
@@ -19,14 +18,8 @@ function getFileCreateDate(filePath) {
 	return formatDate(fs.statSync(filePath).birthtime);
 }
 
-function getWeeklyDate(num) {
-	return num < 100
-		? formatDate(dayjs(START_DATE).subtract(100 - num, 'week'))
-		: getFileCreateDate(filePath);
-}
-
-function getTwitterImage(num) {
-	return num >= 110 ? `https://weekly.tw93.fun/assets/${num}.jpg` : undefined;
+function getWeeklyDate(num, filePath) {
+	return num < 100 ? formatDate(dayjs(START_DATE).subtract(100 - num, 'week')) : getFileCreateDate(filePath);
 }
 
 function defaultLayoutPlugin() {
@@ -49,14 +42,10 @@ function defaultLayoutPlugin() {
 
 		if (!frontmatter.date) {
 			const postNumber = filePath.split('/posts/')[1].split('-')[0];
-			frontmatter.date = SITE.repo === WEEKLY_REPO_NAME
-				? getWeeklyDate(postNumber)
-				: getFileCreateDate(filePath);
-		}
-
-		if (SITE.repo === WEEKLY_REPO_NAME) {
-			const postNumber = filePath.split('/posts/')[1].split('-')[0];
-			frontmatter.twitterImg = getTwitterImage(postNumber);
+			frontmatter.date =
+				SITE.repo === WEEKLY_REPO_NAME
+					? getWeeklyDate(postNumber, filePath)
+					: getFileCreateDate(filePath);
 		}
 	};
 }
@@ -66,6 +55,6 @@ export default defineConfig({
 	integrations: [tailwind()],
 	markdown: {
 			remarkPlugins: [defaultLayoutPlugin],
-			rehypePlugins: [rehypeCustomizeImageSrc],
+			rehypePlugins: [],
 	},
 });

@@ -106,7 +106,7 @@ main .gsc-comment-box-textarea:focus,
   visibility: hidden;
 }
 .gsc-reactions-count:after {
-  content: '欢迎一起交流~';
+  content: 'welcome to leave a comment';
   visibility: visible;
   font-size: 1.4rem;
   display: inline-block;
