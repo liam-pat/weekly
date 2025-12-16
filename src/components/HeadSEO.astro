@@ -11,7 +11,7 @@ const { title: contentTitle, description: contentDescription, image } = content;
 const pageTitle = contentTitle ? `${title}${contentTitle}` : title;
 const imageSrc = image || pic;
 const description = contentDescription || siteDescription;
-const preloadImage = image ? `${image}?x-oss-process=image/resize,w_3600/format,webp` : false;
+const preloadImage = image || false;
 ---
 
 <meta name='twitter:card' content='summary_large_image' />
