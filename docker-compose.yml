@@ -1,0 +1,12 @@
+services:
+  weekly:
+    image: node:20
+    container_name: weekly
+    labels:
+      - dev.orbstack.domains=weekly.orb.local
+    volumes:
+      - "./:/weekly"
+    working_dir: "/weekly"
+    command: npm run dev -- --host
+    ports:
+      - 4321:4321
