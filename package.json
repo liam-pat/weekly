@@ -2,15 +2,15 @@
   "name": "weekly",
   "description": "My weekly",
   "type": "module",
-  "version": "0.2.0",
+  "version": "1.0",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/tw93/weekly.git"
+    "url": "https://github.com/liam-pat/weekly.git"
   },
   "author": {
-    "name": "Tw93",
-    "email": "tw93@qq.com"
+    "name": "Mr.Pat",
+    "email": "biyongyao+weekly@gmail.com"
   },
   "license": "MIT",
   "scripts": {

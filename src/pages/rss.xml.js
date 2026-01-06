@@ -13,10 +13,10 @@ export function GET() {
   posts = posts.slice(0, 12);
 
   return rss({
-    title: '每週趣事',
-    description: '記錄 Liam 每週趣事',
+    title: '进度条 7/7',
+    description: 'Mr.Pat 每周留白处',
     site: 'https://weekly.biyongyao.com/',
-    customData: `<image><url>https://s21.ax1x.com/2025/02/12/pEui5Yd.png</url><title>每週趣事</title><link>https://weekly.biyongyao.com</link></image><follow_challenge><feedId>83723980500419584</feedId><userId>83722505120690176</userId></follow_challenge>`,
+    customData: `<image><url>https://s21.ax1x.com/2025/02/12/pEui5Yd.png</url><title>进度条 7/7</title><link>https://weekly.biyongyao.com</link></image><follow_challenge><feedId>83723980500419584</feedId><userId>83722505120690176</userId></follow_challenge>`,
     items: posts.map((item) => {
       const [issueNumber, issueTitle] = item.url.split('/posts/')[1].split('-');
       const title = `第${issueNumber}期 - ${issueTitle}`;
