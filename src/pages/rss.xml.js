@@ -5,8 +5,8 @@ export function GET() {
   let posts = Object.values(allPosts);
 
   posts = posts.sort((a, b) => {
-    const getPostNumber = (url) => parseInt(url.split('/posts/')[1].split('-')[0]);
-    return getPostNumber(b.url) - getPostNumber(a.url);
+    const getPostNumber = (file) => parseInt(file.split('/').pop().split('-')[0]);
+    return getPostNumber(b.file) - getPostNumber(a.file);
   });
 
   // Only 12 are kept
@@ -18,10 +18,13 @@ export function GET() {
     site: 'https://weekly.biyongyao.com/',
     customData: `<image><url>https://s21.ax1x.com/2025/02/12/pEui5Yd.png</url><title>进度条 7/7</title><link>https://weekly.biyongyao.com</link></image><follow_challenge><feedId>83723980500419584</feedId><userId>83722505120690176</userId></follow_challenge>`,
     items: posts.map((item) => {
-      const [issueNumber, issueTitle] = item.url.split('/posts/')[1].split('-');
+      const filename = item.file.split('/').pop().replace('.md', '');
+      const parts = filename.split('-');
+      const issueNumber = parseInt(parts[0], 10).toString();
+      const issueTitle = parts.slice(1).join('-');
       const title = `第${issueNumber}期 - ${issueTitle}`;
       return {
-        link: item.url,
+        link: `/posts/${issueNumber}`,
         title,
         description: item.compiledContent(),
         pubDate: item.frontmatter.date,

@@ -7,19 +7,35 @@ import AstroLogo from '../components/Header/AstroLogo.astro';
 import LeftSidebar from '../components/LeftSidebar.astro';
 import Search from '../components/Header/Search.astro';
 import { SITE } from '@/config';
-import { parseTitle, sortPosts, getIndex } from '@/util';
+import { parseTitle, sortPosts, getIndex, getPostId } from '@/util';
 
 export interface Props {
-  frontmatter: { date: string; pic: string; desc: string; url: string };
+  frontmatter: { date: string; pic: string; desc: string; url: string; headerTitle?: string };
   title: string;
 }
 
 const pageUrl = new URL(Astro.request.url);
 const currentPage = pageUrl.pathname;
 
-let title = parseTitle(currentPage);
+// Use the pre-calculated title from [id].astro if available, otherwise fallback
+const { date, pic, desc, url, headerTitle } = Astro.props.frontmatter;
 
-const { date, pic, desc, url } = Astro.props.frontmatter;
+// The next article
+const posts = await Astro.glob('../pages/posts/*.md');
+const allPosts = sortPosts(posts);
+const postIndex = getIndex(currentPage);
+
+// Enhanced title logic: if headerTitle is missing, find it in allPosts
+let title = headerTitle;
+if (!title) {
+  const currentPost = allPosts.find(p => getPostId(p) === postIndex);
+  if (currentPost) {
+    title = parseTitle(currentPost.file);
+  } else {
+    title = parseTitle(currentPage);
+  }
+}
+
 const content = {
   title,
   image: pic,
@@ -27,12 +43,15 @@ const content = {
 };
 const currentUrl = `${SITE.homePage}${currentPage}`;
 
-// The next article
-const posts = await Astro.glob('../pages/posts/*.md');
-const allPosts = sortPosts(posts);
-const postIndex = getIndex(currentPage);
-let nextUrl = postIndex > 2 ? allPosts[allPosts.length - postIndex + 1].url : '';
-let prevUrl = postIndex < allPosts.length ? allPosts[allPosts.length - postIndex - 1].url : '';
+const getPostUrl = (post) => {
+  if (!post) return '';
+  // Check if it's a legacy post with a URL or a raw file
+  if (post.url) return post.url;
+  return `/posts/${getPostId(post)}`;
+}
+
+let nextUrl = postIndex > 2 ? getPostUrl(allPosts[allPosts.length - postIndex + 1]) : '';
+let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length - postIndex - 1]) : '';
 ---
 
 <html lang="ch">

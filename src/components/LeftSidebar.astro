@@ -2,7 +2,7 @@
 const { currentPage } = Astro.props;
 import AstroLogo from './Header/AstroLogo.astro';
 import { SITE } from '@/config';
-import { parseTitle, sortPosts } from '@/util';
+import { parseTitle, sortPosts, getPostId } from '@/util';
 
 const posts = await Astro.glob('../pages/posts/*.md');
 const allPosts = sortPosts(posts);
@@ -11,8 +11,8 @@ let currentPageMatch = currentPage.slice(1).replace(/\/$/, '');
 
 const sidebarSections = allPosts.reduce((sections, post, index) => {
   const route = {
-    title: parseTitle(post.url),
-    link: post.url.slice(1),
+    title: parseTitle(post.file),
+    link: `posts/${getPostId(post)}`,
   };
   if (index === 0) {
     sections.push({ text: '', children: [] });

@@ -1,13 +1,13 @@
 ---
-import { parseTitle } from '@/util';
+import { parseTitle, getPostId } from '@/util';
 
 const { post } = Astro.props;
-const title = parseTitle(post.url);
+const title = parseTitle(post.file);
 const { pic, desc, date } = post.frontmatter;
 ---
 
 <a
-  href={post.url}
+  href={`/posts/${getPostId(post)}`}
   data-astro-prefetch
   data-image={pic}
   class="pb-3 md:mt-5 mt-4 md:mr-5 flex flex-col justify-center rounded-b-md shadow-md overflow-hidden mx-auto md:w-80 w-96 card-content preload-link"

@@ -1,0 +1,33 @@
+---
+import { sortPosts } from '@/util';
+
+export async function getStaticPaths() {
+  const posts = await Astro.glob('./*.md');
+  return posts.map((post) => {
+    // Parse filename: "48-Title.md"
+    const filename = post.file.split('/').pop().replace('.md', '');
+    const parts = filename.split('-');
+    // Remove leading zeros from ID (e.g., "06" -> "6")
+    const id = parseInt(parts[0], 10).toString();
+    const titleText = parts.slice(1).join('-');
+    
+    return {
+      params: { id },
+      props: { post, id, titleText },
+    };
+  });
+}
+
+const { post, id, titleText } = Astro.props;
+const { Content } = post;
+
+// Construct the new frontmatter to pass to the Layout
+const frontmatter = {
+  ...post.frontmatter,
+  url: `/posts/${id}`,
+  titleText: titleText,
+  headerTitle: `第${id}期 - ${titleText}` 
+};
+---
+
+<Content frontmatter={frontmatter} />
