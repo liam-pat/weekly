@@ -10,3 +10,20 @@ export const SITE = {
   repo: 'liam-pat/weekly',
   twitterId: "unknown"
 };
+
+// Reading speed configuration (characters/words per minute)
+export const READING_SPEED = {
+  chinese: 300,  // Chinese characters per minute
+  english: 200,  // English words per minute
+};
+
+// RSS feed configuration
+export const RSS_CONFIG = {
+  maxItems: 12,  // Maximum number of items in RSS feed
+};
+
+// Image lazy loading configuration
+export const IMAGE_CONFIG = {
+  lazyLoadThreshold: 1,  // Images after this index will be lazy loaded (0-indexed)
+};
+
