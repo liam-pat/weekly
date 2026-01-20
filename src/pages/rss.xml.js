@@ -24,11 +24,12 @@ export function GET() {
       const issueNumber = parseInt(parts[0], 10).toString();
       const issueTitle = parts.slice(1).join('-');
       const title = `第${issueNumber}期 - ${issueTitle}`;
+
       return {
+        title: String(title),
+        description: String(item.frontmatter?.desc || SITE.description),
         link: `/posts/${issueNumber}`,
-        title,
-        description: item.compiledContent(),
-        pubDate: item.frontmatter.date,
+        pubDate: new Date(item.frontmatter.date),
       };
     }),
   });

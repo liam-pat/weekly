@@ -1,6 +1,8 @@
 import fs from 'fs';
 import dayjs from 'dayjs';
 import tailwind from '@astrojs/tailwind';
+import remarkBreaks from 'remark-breaks';
+import sitemap from '@astrojs/sitemap';
 
 import { defineConfig } from 'astro/config';
 import { parse } from 'node-html-parser';
@@ -51,10 +53,37 @@ function defaultLayoutPlugin() {
 }
 
 export default defineConfig({
+	site: SITE.homePage,
 	prefetch: true,
-	integrations: [tailwind()],
+	integrations: [
+		tailwind(),
+		sitemap({
+			changefreq: 'weekly',
+			priority: 0.7,
+			lastmod: new Date(),
+			filter: (page) => {
+				// Filter out URLs with post titles, keep only numeric URLs
+				// e.g., keep /posts/1/ but exclude /posts/1-title/
+				const url = new URL(page);
+				const postPathMatch = url.pathname.match(/\/posts\/(\d+)-/);
+				return !postPathMatch;  // Return false to exclude URLs with titles
+			},
+		}),
+	],
 	markdown: {
-			remarkPlugins: [defaultLayoutPlugin],
-			rehypePlugins: [],
+		remarkPlugins: [remarkBreaks, defaultLayoutPlugin],
+		rehypePlugins: [],
+		gfm: true,  // GitHub Flavored Markdown
+		smartypants: true,  // Smart quotes and dashes
+		remarkRehype: {
+			handlers: {},
+			allowDangerousHtml: true,
+		},
+	},
+	vite: {
+		server: {
+			host: true,
+			allowedHosts: ['weekly.orb.local'],
+		},
 	},
 });

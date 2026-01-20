@@ -5,7 +5,7 @@ export const SITE = {
   keywords: 'Liam,Weekly',
   icon: 'https://gz-blog-storage-1252787757.cos.ap-guangzhou.myqcloud.com/public/weekly-favicon.ico',
   pic: 'https://gz-blog-storage-1252787757.cos.ap-guangzhou.myqcloud.com/public/weekly-512x512.png',
-  homePage: 'https://weekly.biyongyao.com',
+  homePage: 'https://weekly.biyongyao.com',  // Required for sitemap generation
   blogPage: 'https://biyongyao.com',
   repo: 'liam-pat/weekly',
   twitterId: "unknown"

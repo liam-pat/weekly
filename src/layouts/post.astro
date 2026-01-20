@@ -37,6 +37,7 @@ if (!title) {
 }
 
 // Calculate article statistics
+// In Astro 5.x, slots can only be rendered once, so we store the result
 const compiledContent = await Astro.slots.render('default');
 const textContent = compiledContent.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 
@@ -262,7 +263,7 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
             </span>
           </div>
           
-          <slot />
+          <Fragment set:html={compiledContent} />
           <div class="flex align-middle justify-center mt-4">
             <button
               class="inline-block items-center rounded px-5 py-3 text-sm font-medium pay-button cursor-pointer"
