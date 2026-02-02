@@ -3,8 +3,12 @@ import { SITE, RSS_CONFIG } from '../config';
 import { getPostNumber, getTitlePart, formatPostTitle, sortPosts } from '../util';
 
 export function GET() {
+  // Get all posts
   let allPosts = import.meta.glob('./posts/*.md', { eager: true });
-  let posts = sortPosts(Object.values(allPosts));
+  let posts = Object.values(allPosts);
+
+  // Sort by post number (descending)
+  posts = sortPosts(posts);
 
   // Only keep the configured maximum number of items
   posts = posts.slice(0, RSS_CONFIG.maxItems);

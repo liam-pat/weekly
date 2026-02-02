@@ -33,7 +33,7 @@ export const parseTitle = (currentPage: string): string => {
   const postNumber = getPostNumber(currentPage);
   const titlePart = getTitlePart(currentPage);
   let title = formatPostTitle(postNumber, titlePart);
-  
+
   if (title.endsWith('/')) {
     title = title.slice(0, -1);
   }

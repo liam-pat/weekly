@@ -1,3 +1,7 @@
+---
+import { GISCUS } from '@/config';
+---
+
 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
   <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
     <mask class="moon" id="moon-mask">
@@ -87,13 +91,11 @@
   }
 </style>
 
-<script is:inline>
+<script is:inline define:vars={{ giscusLight: GISCUS.themes.light, giscusDark: GISCUS.themes.dark }}>
   window.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
     const giscusScript = document.getElementById('giscus-script');
-    const GISCUS_DARK_THEME = 'https://gz-blog-storage-1252787757.cos.ap-guangzhou.myqcloud.com/public/css/giscus-dark.css';
-    const GISCUS_LIGHT_THEME = 'https://gz-blog-storage-1252787757.cos.ap-guangzhou.myqcloud.com/public/css/giscus-light.css';
 
     const updateIframeTheme = (newTheme) => {
       const iframe = document.querySelector('iframe.giscus-frame');
@@ -118,7 +120,8 @@
 
     const setTheme = (theme) => {
       document.body.classList.toggle('dark', theme === 'dark');
-      changeGiscusTheme(theme === 'dark' ? GISCUS_DARK_THEME : GISCUS_LIGHT_THEME);
+      const giscusTheme = theme === 'dark' ? giscusDark : giscusLight;
+      changeGiscusTheme(giscusTheme);
       document.body.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
     };
