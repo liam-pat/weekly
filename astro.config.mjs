@@ -7,6 +7,7 @@ import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import { parse } from 'node-html-parser';
 import { SITE } from './src/config';
+import { getPostNumber } from './src/util';
 
 const DEFAULT_FORMAT = 'YYYY/MM/DD';
 const WEEKLY_REPO_NAME = 'liam-pat/weekly';
@@ -43,10 +44,10 @@ function defaultLayoutPlugin() {
 		frontmatter.pic = frontmatter.pic || SITE.pic;
 
 		if (!frontmatter.date) {
-			const postNumber = filePath.split('/posts/')[1].split('-')[0];
+			const postNum = getPostNumber(filePath);
 			frontmatter.date =
 				SITE.repo === WEEKLY_REPO_NAME
-					? getWeeklyDate(postNumber, filePath)
+					? getWeeklyDate(postNum, filePath)
 					: getFileCreateDate(filePath);
 		}
 	};

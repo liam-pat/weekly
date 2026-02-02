@@ -1,14 +1,10 @@
 import rss from '@astrojs/rss';
 import { SITE, RSS_CONFIG } from '../config';
+import { getPostNumber, getTitlePart, formatPostTitle, sortPosts } from '../util';
 
 export function GET() {
   let allPosts = import.meta.glob('./posts/*.md', { eager: true });
-  let posts = Object.values(allPosts);
-
-  posts = posts.sort((a, b) => {
-    const getPostNumber = (file) => parseInt(file.split('/').pop().split('-')[0]);
-    return getPostNumber(b.file) - getPostNumber(a.file);
-  });
+  let posts = sortPosts(Object.values(allPosts));
 
   // Only keep the configured maximum number of items
   posts = posts.slice(0, RSS_CONFIG.maxItems);
@@ -19,16 +15,14 @@ export function GET() {
     site: SITE.homePage,
     customData: `<image><url>https://s21.ax1x.com/2025/02/12/pEui5Yd.png</url><title>进度条 7/7</title><link>https://weekly.biyongyao.com</link></image><follow_challenge><feedId>83723980500419584</feedId><userId>83722505120690176</userId></follow_challenge>`,
     items: posts.map((item) => {
-      const filename = item.file.split('/').pop().replace('.md', '');
-      const parts = filename.split('-');
-      const issueNumber = parseInt(parts[0], 10).toString();
-      const issueTitle = parts.slice(1).join('-');
-      const title = `第${issueNumber}期 - ${issueTitle}`;
+      const postNumber = getPostNumber(item.file);
+      const titlePart = getTitlePart(item.file);
+      const title = formatPostTitle(postNumber, titlePart);
 
       return {
         title: String(title),
         description: String(item.frontmatter?.desc || SITE.description),
-        link: `/posts/${issueNumber}`,
+        link: `/posts/${postNumber}`,
         pubDate: new Date(item.frontmatter.date),
       };
     }),
