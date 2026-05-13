@@ -1083,9 +1083,9 @@ span.emoji {
   -moz-box-orient: vertical;
   display: inline-block;
   vertical-align: baseline;
-  *vertical-align: auto;
-  *zoom: 1;
-  *display: inline;
+  vertical-align: auto;
+  zoom: 1;
+  display: inline;
   width: 1em;
   height: 1em;
   background-size: 1em;
@@ -1104,7 +1104,7 @@ span.emoji-sizer {
 span.emoji-outer {
   display: -moz-inline-box;
   display: inline-block;
-  *display: inline;
+  display: inline;
   height: 1em;
   width: 1em;
 }
