@@ -7,6 +7,6 @@ services:
     volumes:
       - "./:/weekly"
     working_dir: "/weekly"
-    command: npm run dev -- --host
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - 4321:4321
