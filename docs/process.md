@@ -1,6 +1,6 @@
 # Process: History + Requirements
 
-Last updated: 2026-08-19
+Last updated: 2026-08-25
 
 ## 1) AI Execution Rules
 
@@ -30,6 +30,7 @@ Rules:
 
 | ID            | Date       | Feature                                                                    | Status | Notes                                                                                                                                                                                                         |
 | ------------- | ---------- | -------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H-20260825-01 | 2026-08-25 | Add rounded corners to article images and lightbox preview (8px)           | done   | Added 8px border-radius to .heti img, img[loading='lazy'], #lightbox-img, .lightbox-video, and .live-inline-video |
 | H-20260819-01 | 2026-08-19 | Full English archive translation (1-49 issues)                             | done   | Translated all 49 issues into English (`src/pages/en/posts/`), updated English home cards, English RSS feed, and full-text dual-language search index                                                         |
 | H-20260515-01 | 2026-05-15 | Image lightbox + Live Photo experience (R-20260514-02)                     | done   | Replaced intense.js with native `<dialog>` lightbox, added `#live` badge/playback flow, playback/error recovery and delegated events, preserved `.mov` query params, and tuned backdrop to lighter glass blur |
 | H-20260817-01 | 2026-08-17 | Bilingual routing and English skeleton (R-20260817-01)                     | done   | Added `/en/` and `/en/posts/:id`, localized shared UI and metadata, and linked every Chinese post to its English placeholder.                                                                                 |
@@ -46,6 +47,17 @@ Status values: `proposed` | `in_progress` | `done` | `blocked` | `dropped`
 ## 3) New Requirements (Write Here)
 
 Add each new request as one item below.
+
+### R-20260825-01 Feature
+
+- Status: done
+- Priority: P2
+- Owner: ai
+- Goal: 为文章详情图片、延迟加载占位、点击放大（Lightbox 图片/视频）以及 Live Photo 内联播放视频添加统一的 8px 精致圆角。
+- Acceptance Criteria:
+  - 文章详情内图片 (`.heti img` 与 `img[loading='lazy']`) 具有 8px 圆角。
+  - 点击放大后展示的图片 (`#lightbox-img`)、Lightbox 播放视频 (`.lightbox-video`) 及内联 Live Photo 播放视频 (`.live-inline-video`) 统一保持 8px 圆角。
+- Outcome: 更新 `src/styles/heti.min.css` 和 `src/styles/index.css`，将所有文章图片及 Lightbox 预览与视频播放的 `border-radius` 统一设置为 8px。Docker build 验证通过。
 
 ### R-20260817-01 Feature
 

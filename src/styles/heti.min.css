@@ -22,6 +22,10 @@ img {
   object-fit: cover;
 }
 
+.heti img {
+  border-radius: 8px;
+}
+
 .heti p > img {
   margin-top: 8px;
 }
@@ -1138,4 +1142,5 @@ img.emoji {
 img[loading='lazy'] {
   background-color: #eef1f2;
   outline-color: #eef1f2;
+  border-radius: 8px;
 }
