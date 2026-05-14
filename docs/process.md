@@ -30,6 +30,7 @@ Rules:
 
 | ID | Date | Feature | Status | Notes |
 |---|---|---|---|---|
+| H-20260514-02 | 2026-05-14 | Fix "第NaN期" on Vercel (trailing slash in `extractFilename`) | done | `src/util.ts`: strip trailing slash before `pop()` |
 | H-20260514-01 | 2026-05-14 | Documentation system refresh (`README.md`, `AGENTS.md`, `docs/process.md`) | done | Added Docker-first workflow and requirement ledger |
 | H-20260202-01 | 2026-02-02 | Full-text search with Pagefind in production build | done | Validated in build/preview |
 | H-20260101-01 | unknown | Post reading UX improvements | done | Reading progress bar, word count, reading-time estimate |
@@ -43,28 +44,10 @@ Status values: `proposed` | `in_progress` | `done` | `blocked` | `dropped`
 
 Add each new request as one item below.
 
-### R-YYYYMMDD-XX <Title>
-- Status: proposed
-- Priority: P0 | P1 | P2 | P3
-- Owner: ai | human | shared
-- Goal:
-- Scope (files/modules):
-- Acceptance Criteria:
-- Constraints (optional):
-- Notes (optional):
-- Outcome (required when done/blocked):
-
-Example:
-
-### R-20260514-02 Improve RSS metadata quality
-- Status: proposed
+### R-20260514-01 bug fix 
+- Status: done
 - Priority: P1
 - Owner: ai
-- Goal: Ensure every RSS item has stable title/description/date.
-- Scope (files/modules): `src/pages/rss.xml.js`, `src/config.ts`
-- Acceptance Criteria:
-  - `docker compose exec weekly npm run build` passes
-  - `/rss.xml` renders valid item fields for latest 12 posts
-- Outcome (required when done/blocked):
-
----
+- Goal: 在文章內容詳情顯示 第NaN期，本地 deploy 是沒出現問題，vercel 卻顯示第NaN期.
+- Acceptance Criteria: Vercel 部署後文章頁面應正確顯示「第N期」，不出現 NaN。
+- Outcome: Vercel 預設對所有路由加 trailing slash（如 `/posts/49/`），導致 `extractFilename` 在 `split('/').pop()` 時拿到空字串，`parseInt("")` = NaN。修復：在 `src/util.ts` 的 `extractFilename` 中先 strip trailing slash 再解析。Build 驗證通過（99 頁，exit 0）。
