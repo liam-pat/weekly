@@ -1,6 +1,8 @@
 // Extract filename from path (works with both file paths and URLs)
+// Strip trailing slash first to handle Vercel's trailing-slash redirects (e.g. /posts/49/ -> /posts/49)
 const extractFilename = (path: string): string => {
-  const filename = path.split('/').pop()?.replace('.md', '') || '';
+  const normalizedPath = path.endsWith('/') ? path.slice(0, -1) : path;
+  const filename = normalizedPath.split('/').pop()?.replace('.md', '') || '';
   return decodeURIComponent(filename);
 };
 
