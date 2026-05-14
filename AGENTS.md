@@ -1,46 +1,55 @@
-# Repository Guidelines
+# AGENTS.md
 
-## Project Structure & Module Organization
+Minimal rules for AI sessions in this repo.
 
-This repo is an Astro site for publishing “weekly” posts.
+## 1. Session Start
 
-- `src/pages/` — route entrypoints (e.g. `src/pages/index.astro`, `src/pages/rss.xml.js`).
-- `src/pages/posts/*.md` — weekly posts (Markdown content).
-- `src/components/` — UI components (`*.astro`).
-- `src/layouts/` — shared layouts (notably `src/layouts/post.astro`).
-- `src/styles/` — global CSS and theme files.
-- Key config: `astro.config.mjs`, `tailwind.config.cjs`, `tsconfig.json`, `prettier.config.js`.
-- Build output: `dist/` (do not commit).
+1. Read `README.md`, `AGENTS.md`, `docs/process.md`.
+2. Check workspace: `git status`.
+3. Use Docker-first workflow:
+   - `docker compose up -d`
+   - run project commands inside container.
 
-## Build, Test, and Development Commands
+## 2. Local Run and Test (Docker-first)
 
-Uses `npm` (see `package-lock.json`).
+Docker is the default for both development and validation.
 
-- `npm install` — install dependencies.
-- `npm run dev` — run local dev server (Astro).
-- `npm run build` — build to `dist/` and generate search index via Pagefind (`postbuild`).
-- `npm run preview` — serve the production build locally.
-- `docker compose up` — optional containerized dev server (see `docker-compose.yml`).
+- Start service: `docker compose up -d`
+- Build validation: `docker compose exec weekly npm run build`
+- Optional checks: `docker compose exec weekly npm run astro -- check`
+- Preview check (if UI/search changed):
+  - `docker compose exec weekly npm run preview -- --host 0.0.0.0`
+  - open one page and one post route for smoke check
 
-## Coding Style & Naming Conventions
+Only use host npm commands if Docker is unavailable.
 
-- Formatting: Prettier is the source of truth (`prettier.config.js`).
-  - 2-space indentation, 80-char print width, semicolons.
-  - Run: `npx prettier -w .` (or `npx prettier . --check` in CI).
-- Astro components: `PascalCase.astro` in `src/components/`.
-- Posts: `src/pages/posts/NN-Title.md` (numeric prefix + readable title; Unicode is OK).
-  - Prefer explicit frontmatter `date: YYYY/MM/DD` for stable ordering across machines.
-  - The first `<img>` is used as the post cover when present.
-- Imports: use path aliases from `tsconfig.json` (`@/…`, `@layouts/…`) where appropriate.
+## 3. Change Rules
 
-## Testing Guidelines
+- Content-only change (`*.md`): run build validation.
+- UI/config/behavior change: run build + preview check.
+- Search changes: validate in production build/preview, not only dev.
 
-There is no dedicated test suite in this repo. Treat the build as the primary validation:
+## 4. Conventions
 
-- `npm run build` should succeed with no warnings/errors.
-- Optional type/content checks: `npm run astro check` (or `npx astro check`).
+- Formatting: Prettier.
+- Components: `PascalCase.astro`.
+- Posts: `src/pages/posts/{NN}-{title}.md`.
+- Prefer explicit frontmatter date: `YYYY/MM/DD`.
 
-## Commit & Pull Request Guidelines
+## 5. Git Flow
 
-- Commit messages follow a Conventional Commits-style prefix (e.g. `feat: …`, `fix: …`,`doc: …`); keep subjects short and imperative.
-- PRs should include: a clear description, linked issue/discussion if applicable, and screenshots for UI/style changes.
+- Branches: `feat/*`, `fix/*`, `docs/*`.
+- Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.).
+- Never commit `dist/`.
+
+## 6. Delivery Format
+
+For each task, report:
+
+1. changed files
+2. what changed
+3. validation commands + results
+4. risks / follow-ups
+
+If requirements or behavior changed, update `docs/process.md` in the same task.
+If a task changes requirements or behavior and `docs/process.md` is not updated, treat the task as incomplete.

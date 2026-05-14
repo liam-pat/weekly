@@ -1,91 +1,90 @@
-# Weekly
+# weekly
 
-> Mr.Pat's weekly reflections - A personal WEEKLY built with Astro
+Static weekly blog built with Astro.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## Stack
 
-## Features
-
-- 📝 Weekly posts
-- 🎨 Dark mode support
-- 📊 Reading progress bar
-- 📈 Article statistics (word count & reading time)
-- 🔍 Full-text search (Pagefind)
-- 💬 Comments (Giscus)
-- 📱 Responsive design
-- 🚀 Performance optimized
-
-## Tech Stack
-
-- [Astro](https://astro.build) - Static site generator
-- [Tailwind CSS](https://tailwindcss.com) - Styling
-- [Pagefind](https://pagefind.app) - Search
-- [Giscus](https://giscus.app) - Comments
-- [Heti](https://github.com/sivan/heti) - Chinese typography
+- Astro (SSG)
+- Tailwind CSS
+- Pagefind (search)
+- Giscus (comments)
 
 ## Quick Start
 
+Requirements: Docker Compose (default workflow), Node.js 20+ (fallback).
+
+### Docker-first (recommended)
+
 ```bash
-# Install
+docker compose up -d
+```
+
+Site URL: `http://localhost:4321`
+
+### Host fallback (only if Docker is unavailable)
+
+```bash
 npm install
-
-# Dev
 npm run dev
+```
 
-# Build
+## Commands
+
+```bash
+docker compose exec weekly npm run build
+docker compose exec weekly npm run preview -- --host 0.0.0.0
+docker compose exec weekly npm run astro -- check
+
+# host npm env (only if Docker is unavailable)
 npm run build
-
-# Preview
 npm run preview
+npm run astro -- check
 ```
 
 ## Project Structure
 
-```
+```txt
 src/
-├── components/     # UI components
-├── layouts/        # Page layouts
-├── pages/          # Routes & posts
-│   └── posts/      # Weekly posts (*.md)
-├── styles/         # Global styles
-├── config.ts       # Site configuration
-└── util.ts         # Utilities
+  components/
+  layouts/
+  pages/
+    index.astro
+    rss.xml.js
+    posts/*.md
+    posts/[id].astro
+  styles/
+  config.ts
+  util.ts
 ```
 
-## Publishing Posts
+## Content Model
 
-Create a new Markdown file in `src/pages/posts/`:
+- Posts: `src/pages/posts/*.md`
+- Filename: `{NN}-{title}.md`
+- Route: `/posts/:id`
+- Order: numeric prefix descending
 
-```
-{number}-{title}.md
-```
+## Metadata Behavior
 
-Example: `49-new-beginning.md`
+`astro.config.mjs` auto-fills missing post metadata:
 
-## Configuration
+- `layout`
+- `pic` (first image)
+- `desc`
+- `date` (inferred)
 
-Edit `src/config.ts`:
+## Deploy (Vercel)
 
-```typescript
-export const SITE = {
-  title: 'My Weekly',
-  author: 'Alan',
-  homePage: '',
-  // ...
-};
-```
+- Build command: `npm run build`
+- Output directory: `dist`
+- Install command: `npm install`
 
-## Deploy to Vercel
+## Quality Baseline
 
-### Manual Deployment
+1. `docker compose exec weekly npm run build` passes
+2. one post page renders correctly in preview
 
-1. Push your code to GitHub
-2. Go to [Vercel](https://vercel.com)
-3. Import your repository
-4. Vercel will auto-detect Astro and configure build settings
-5. Click "Deploy"
+## AI Collaboration Docs
 
-Build settings (auto-configured):
-- **Build Command**: `npm run build`
-- **Output Directory**: `dist`
-- **Install Command**: `npm install`
+- `AGENTS.md` — execution rules
+- `docs/process.md` — history + requirements ledger
