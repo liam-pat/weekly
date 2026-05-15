@@ -20,6 +20,7 @@ docker compose up -d
 ```
 
 Site URL: `http://localhost:4321`
+Local domain (OrbStack): `http://weekly.orb.local`
 
 ### Host fallback (only if Docker is unavailable)
 
