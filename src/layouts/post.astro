@@ -222,6 +222,9 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
         transition: width 0.1s ease-out;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
+
+      /* ── Lightbox Dialog: styles live in src/styles/index.css ── */
+
     </style>
   </head>
   <body>
@@ -307,6 +310,16 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
           async></script>
       </div>
     </main>
+    <!-- Image Lightbox Dialog -->
+    <dialog id="img-lightbox" aria-label="圖片預覽">
+      <div id="lightbox-content">
+        <button id="lightbox-live-btn" aria-label="播放 Live Photo" type="button">
+          <span class="live-dot"></span>LIVE
+        </button>
+        <button id="lightbox-close" aria-label="關閉" type="button">✕</button>
+        <img id="lightbox-img" src="" alt="lightbox image" />
+      </div>
+    </dialog>
     <Footer />
     <script is:inline>
       window.addEventListener('DOMContentLoaded', () => {

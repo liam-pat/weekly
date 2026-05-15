@@ -6,9 +6,7 @@ import ThemeSwitch from './ThemeSwitch.astro';
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/heti/0.9.6/heti-addon.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/intense-images/1.0.7/intense.min.js"></script>
 
-<!-- This is intentionally inlined to avoid FOUC -->
 <script is:inline>
   document.addEventListener('DOMContentLoaded', () => {
     // Optimization of letter spacing
@@ -17,24 +15,162 @@ import ThemeSwitch from './ThemeSwitch.astro';
 
     // Lazy loading of images
     const observer = lozad('.lozad', {
-      loaded: (el) => {
-        el.alt = el.getAttribute('data-alt');
-      },
+      loaded: (el) => { el.alt = el.getAttribute('data-alt'); },
     });
     observer.observe();
 
     // Open external links in a new tab
     Array.from(document.links).forEach((link) => {
-      if (link.hostname !== window.location.hostname) {
-        link.target = '_blank';
-      }
+      if (link.hostname !== window.location.hostname) link.target = '_blank';
     });
 
-    // Image zoom for non-mobile devices
-    const zoomImgs = document.querySelectorAll('#write img');
-    if (zoomImgs.length > 0 && !/Android|iPhone/i.test(navigator.userAgent)) {
-      Intense && Intense(zoomImgs);
+    // ── Live badge: append #live to img src to mark a Live Photo ──
+    // e.g. <img src="https://cdn/.../photo.heic#live" />
+    // Use getAttribute('src') — img.src can have the hash stripped by dev server
+    const isLivePhoto = (img) => (img.getAttribute('src') || '').includes('#live');
+
+    // Derive .mov URL: strip #live hash, replace image extension
+    // iPhone Live Photos are natively .MOV — no conversion needed
+    const toLiveUrl = (img) => (img.getAttribute('src') || img.src)
+      .replace(/#live/gi, '')
+      .replace(/(\.(jpe?g|png|webp|heic))(\?.*)?$/i, '.mov$3');
+
+    const setPlaying = (trigger, playing) => {
+      trigger.classList.toggle('playing', playing);
+    };
+
+    const toggleLivePlayback = (mode, { imageEl, triggerEl, liveUrl }) => {
+      if (!liveUrl) return;
+
+      const isInline = mode === 'inline';
+      const container = isInline ? imageEl.closest('.img-live-wrapper') : dialogContent;
+      if (!container) return;
+      const videoSelector = isInline ? '.live-inline-video' : '.lightbox-video';
+      const videoClassName = isInline ? 'live-inline-video' : 'lightbox-video';
+
+      const existingVideo = container.querySelector(videoSelector);
+      if (existingVideo) {
+        existingVideo.pause();
+        existingVideo.remove();
+        imageEl.style.display = '';
+        setPlaying(triggerEl, false);
+        return;
+      }
+
+      const video = document.createElement('video');
+      video.src = liveUrl;
+      video.autoplay = true;
+      video.muted = true;
+      video.playsInline = true;
+      video.className = videoClassName;
+      if (isInline) {
+        video.addEventListener('click', (e) => e.stopPropagation());
+      }
+      const restore = () => {
+        video.remove();
+        imageEl.style.display = '';
+        setPlaying(triggerEl, false);
+      };
+      video.addEventListener('ended', restore);
+      video.onerror = restore;
+
+      imageEl.style.display = 'none';
+      if (isInline) {
+        container.insertBefore(video, triggerEl);
+      } else {
+        container.appendChild(video);
+      }
+      video.play().catch(restore);
+      setPlaying(triggerEl, true);
+    };
+
+    const writeRoot = document.getElementById('write');
+    const dialog = document.getElementById('img-lightbox');
+    const dialogContent = document.getElementById('lightbox-content');
+    const dialogImg = document.getElementById('lightbox-img');
+    const dialogLiveBtn = document.getElementById('lightbox-live-btn');
+    const dialogClose = document.getElementById('lightbox-close');
+
+    document.querySelectorAll('#write img').forEach((img) => {
+      if (!isLivePhoto(img)) return;
+      if (img.parentElement?.classList.contains('img-live-wrapper')) return;
+      const wrapper = document.createElement('span');
+      wrapper.className = 'img-live-wrapper';
+
+      const badge = document.createElement('button');
+      badge.type = 'button';
+      badge.className = 'live-badge';
+      badge.setAttribute('aria-label', '播放 Live Photo');
+      badge.innerHTML = '<span class="live-dot"></span>LIVE';
+
+      wrapper.appendChild(badge);
+      img.parentElement.insertBefore(wrapper, img);
+      wrapper.prepend(img);
+    });
+    if (!dialog || !dialogContent || !dialogImg || !dialogLiveBtn || !dialogClose || !writeRoot) return;
+
+    function openLightbox(img) {
+      const live = isLivePhoto(img);
+      dialogImg.src = (img.getAttribute('src') || img.src).replace(/#live/gi, '');
+      dialogImg.style.display = 'block';
+      dialogClose.style.display = 'flex';
+      dialogLiveBtn.style.display = live ? 'flex' : 'none';
+      if (live) dialogLiveBtn.dataset.liveUrl = toLiveUrl(img);
+      else delete dialogLiveBtn.dataset.liveUrl;
+      dialog.showModal();
     }
+
+    writeRoot.addEventListener('click', (e) => {
+      const badge = e.target.closest('.live-badge');
+      if (badge && writeRoot.contains(badge)) {
+        e.preventDefault();
+        e.stopPropagation();
+        const wrapper = badge.closest('.img-live-wrapper');
+        const img = wrapper?.querySelector('img');
+        if (!img) return;
+        toggleLivePlayback('inline', {
+          imageEl: img,
+          triggerEl: badge,
+          liveUrl: toLiveUrl(img),
+        });
+        return;
+      }
+
+      const img = e.target.closest('img');
+      if (!img || !writeRoot.contains(img)) return;
+      if (img.closest('a')) e.preventDefault();
+      openLightbox(img);
+    });
+
+    dialogContent.addEventListener('click', (e) => {
+      const closeBtn = e.target.closest('#lightbox-close');
+      if (closeBtn) {
+        dialog.close();
+        return;
+      }
+      const liveBtn = e.target.closest('#lightbox-live-btn');
+      if (!liveBtn) return;
+      toggleLivePlayback('dialog', {
+        imageEl: dialogImg,
+        triggerEl: dialogLiveBtn,
+        liveUrl: dialogLiveBtn.dataset.liveUrl,
+      });
+    });
+
+    // Close on backdrop click (click outside #lightbox-content)
+    dialog.addEventListener('click', (e) => {
+      if (dialogContent && !dialogContent.contains(e.target)) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      dialogImg.src = '';
+      dialogImg.style.display = 'block';
+      dialogClose.style.display = 'none';
+      dialogLiveBtn.style.display = 'none';
+      dialogLiveBtn.classList.remove('playing');
+      delete dialogLiveBtn.dataset.liveUrl;
+      const vid = dialogContent.querySelector('.lightbox-video');
+      if (vid) { vid.pause(); vid.remove(); }
+    });
   });
 </script>
 
