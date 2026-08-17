@@ -1,34 +1,61 @@
 ---
-import '../styles/heti.min.css';
-import HeadCommon from '../components/HeadCommon.astro';
-import HeadSEO from '../components/HeadSEO.astro';
-import Footer from '../components/Footer.astro';
-import AstroLogo from '../components/Header/AstroLogo.astro';
-import LeftSidebar from '../components/LeftSidebar.astro';
-import Search from '../components/Header/Search.astro';
-import { SITE, READING_SPEED, IMAGE_CONFIG, GISCUS } from '@/config';
-import { parseTitle, sortPosts, getIndex, getPostId } from '@/util';
+import "../styles/heti.min.css";
+import HeadCommon from "../components/HeadCommon.astro";
+import HeadSEO from "../components/HeadSEO.astro";
+import Footer from "../components/Footer.astro";
+import AstroLogo from "../components/Header/AstroLogo.astro";
+import LeftSidebar from "../components/LeftSidebar.astro";
+import Search from "../components/Header/Search.astro";
+import LanguageSwitch from "../components/LanguageSwitch.astro";
+import {
+  SITE,
+  SITE_I18N,
+  UI_COPY,
+  READING_SPEED,
+  IMAGE_CONFIG,
+  GISCUS,
+  type Locale,
+} from "@/config";
+import { parseTitle, sortPosts, getIndex, getPostId } from "@/util";
 
 export interface Props {
-  frontmatter: { date: string; pic: string; desc: string; url: string; headerTitle?: string };
+  frontmatter: {
+    date: string;
+    pic: string;
+    desc: string;
+    url: string;
+    headerTitle?: string;
+  };
   title: string;
+  locale?: Locale;
+  alternateUrl?: string;
 }
 
 const pageUrl = new URL(Astro.request.url);
 const currentPage = pageUrl.pathname;
+const {
+  locale = "zh",
+  alternateUrl = locale === "zh"
+    ? `/en${currentPage}`
+    : currentPage.replace(/^\/en/, ""),
+} = Astro.props;
+const site = SITE_I18N[locale];
+const copy = UI_COPY[locale];
 
 // Use the pre-calculated title from [id].astro if available, otherwise fallback
 const { date, pic, desc, url, headerTitle } = Astro.props.frontmatter;
 
 // The next article
-const posts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
+const posts = Object.values(
+  import.meta.glob("../pages/posts/*.md", { eager: true }),
+);
 const allPosts = sortPosts(posts);
 const postIndex = getIndex(currentPage);
 
 // Enhanced title logic: if headerTitle is missing, find it in allPosts
 let title = headerTitle;
 if (!title) {
-  const currentPost = allPosts.find(p => getPostId(p) === postIndex);
+  const currentPost = allPosts.find((p) => getPostId(p) === postIndex);
   if (currentPost) {
     title = parseTitle(currentPost.file);
   } else {
@@ -38,20 +65,26 @@ if (!title) {
 
 // Calculate article statistics
 // In Astro 5.x, slots can only be rendered once, so we store the result
-const compiledContent = await Astro.slots.render('default');
-const textContent = compiledContent.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+const compiledContent = await Astro.slots.render("default");
+const textContent = compiledContent
+  .replace(/<[^>]*>/g, "")
+  .replace(/\s+/g, " ")
+  .trim();
 
 // Word count (for Chinese and English)
 const chineseChars = textContent.match(/[\u4e00-\u9fa5]/g) || [];
 const englishWords = textContent.match(/[a-zA-Z]+/g) || [];
-const totalWords = chineseChars.length + englishWords.length;
+const totalWords =
+  locale === "en"
+    ? englishWords.length
+    : chineseChars.length + englishWords.length;
 
 // Reading time estimation
 const readingTimeMinutes = Math.ceil(
-  (chineseChars.length / READING_SPEED.chinese) + 
-  (englishWords.length / READING_SPEED.english)
+  chineseChars.length / READING_SPEED.chinese +
+    englishWords.length / READING_SPEED.english,
 );
-const readingTime = readingTimeMinutes < 1 ? '< 1' : readingTimeMinutes;
+const readingTime = readingTimeMinutes < 1 ? "< 1" : readingTimeMinutes;
 
 const content = {
   title,
@@ -59,24 +92,38 @@ const content = {
   description: desc,
 };
 const currentUrl = `${SITE.homePage}${currentPage}`;
+const alternates =
+  locale === "zh"
+    ? { zh: currentUrl, en: `${SITE.homePage}${alternateUrl}` }
+    : { zh: `${SITE.homePage}${alternateUrl}`, en: currentUrl };
+const homeUrl = site.homePath;
 
 const getPostUrl = (post) => {
-  if (!post) return '';
+  if (!post) return "";
   // Check if it's a legacy post with a URL or a raw file
   if (post.url) return post.url;
-  return `/posts/${getPostId(post)}`;
-}
+  return `${locale === "en" ? "/en" : ""}/posts/${getPostId(post)}`;
+};
 
-let nextUrl = postIndex > 2 ? getPostUrl(allPosts[allPosts.length - postIndex + 1]) : '';
-let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length - postIndex - 1]) : '';
+let nextUrl =
+  postIndex > 2 ? getPostUrl(allPosts[allPosts.length - postIndex + 1]) : "";
+let prevUrl =
+  postIndex < allPosts.length
+    ? getPostUrl(allPosts[allPosts.length - postIndex - 1])
+    : "";
 ---
 
-<html lang="zh-CN">
+<html lang={site.htmlLang}>
   <head>
     <HeadCommon />
-    <HeadSEO content={content} pageURL={currentUrl} />
+    <HeadSEO
+      content={content}
+      pageURL={currentUrl}
+      locale={locale}
+      alternates={alternates}
+    />
     <meta name="generator" content={Astro.generator} />
-    <title>{SITE.title}{title}</title>
+    <title>{site.title} {title}</title>
     <style>
       body {
         width: 100%;
@@ -87,7 +134,9 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
       .layout {
         display: grid;
         grid-auto-flow: column;
-        grid-template-columns: minmax(var(--gutter), 1fr) minmax(0, var(--max-width)) minmax(var(--gutter), 1fr);
+        grid-template-columns:
+          minmax(var(--gutter), 1fr) minmax(0, var(--max-width))
+          minmax(var(--gutter), 1fr);
         overflow-x: hidden;
       }
 
@@ -217,66 +266,113 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
         left: 0;
         width: 0%;
         height: 3px;
-        background: linear-gradient(90deg, var(--theme-accent), var(--theme-accent-secondary, var(--theme-accent)));
+        background: linear-gradient(
+          90deg,
+          var(--theme-accent),
+          var(--theme-accent-secondary, var(--theme-accent))
+        );
         z-index: 9999;
         transition: width 0.1s ease-out;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       /* ── Lightbox Dialog: styles live in src/styles/index.css ── */
-
     </style>
   </head>
   <body>
     <!-- Reading Progress Bar -->
     <div id="reading-progress-bar"></div>
     <main class="layout">
-      <aside id="grid-left" class="grid-sidebar" title="Site Navigation">
-        <LeftSidebar currentPage={currentPage} />
+      <aside id="grid-left" class="grid-sidebar" title={copy.siteNavigation}>
+        <LeftSidebar
+          currentPage={currentPage}
+          locale={locale}
+          alternateUrl={alternateUrl}
+        />
       </aside>
       <div id="grid-main">
         <div
-          class="markdown-body heti md:mx-auto md:pb-20 pb-14 xl:max-w-7xl w-full lg:max-w-5xl md:max-w-2xl md:pl-3.5"
+          class:list={[
+            "markdown-body md:mx-auto md:pb-20 pb-14 xl:max-w-7xl w-full lg:max-w-5xl md:max-w-2xl md:pl-3.5",
+            { heti: locale === "zh" },
+          ]}
           id="write"
         >
-          <h1 class="content-title flex align-middle text-gray-800 dark:text-gray-200">
-            <a class="logo inline-block md:hidden visible" href="/"><AstroLogo size={40} /> </a>
+          <h1
+            class="content-title flex align-middle text-gray-800 dark:text-gray-200"
+          >
+            <a class="logo inline-block md:hidden visible" href={homeUrl}
+              ><AstroLogo size={40} />
+            </a>
             <span data-pagefind-meta="title">{title}</span>
-            <Search />
+            <Search locale={locale} />
+            <span class="ml-3 inline-flex items-center md:hidden"
+              ><LanguageSwitch locale={locale} href={alternateUrl} /></span
+            >
           </h1>
-          
+
           <!-- Article Statistics -->
-          <div class="article-stats flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4 mt-2">
+          <div
+            class="article-stats flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4 mt-2"
+          >
             <span class="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                ></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
                 <line x1="16" y1="17" x2="8" y2="17"></line>
                 <polyline points="10 9 9 9 8 9"></polyline>
               </svg>
-              {totalWords.toLocaleString()} 字
+              {totalWords.toLocaleString()}
+              {copy.words}
             </span>
             <span class="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
-              阅读时长 {readingTime} 分钟
+              {copy.readingTime}
+              {readingTime}
+              {copy.minutes}
             </span>
           </div>
-          
+
           <Fragment set:html={compiledContent} />
           <div class="flex align-middle justify-center mt-4">
             <button
               class="inline-block items-center rounded px-5 py-3 text-sm font-medium pay-button cursor-pointer"
               type="button"
-              title="功能开发中">去喂拉布拉多 ❤</button>
+              title={copy.feedDogTitle}>{copy.feedDog}</button
+            >
           </div>
           <hr />
-          <div class="flex justify-between md:flex-row flex-col mt-2 post-footer">
+          <div
+            class="flex justify-between md:flex-row flex-col mt-2 post-footer"
+          >
             <div class="text-gray-800 dark:text-gray-200 flex-1">
-              发布日期：<a
+              {copy.publishedOn}<a
                 href={`https://github.com/${SITE.repo}/tree/main/src/pages${url}.md`}
                 target="_blank"
                 data-pagefind-sort="date"
@@ -284,10 +380,17 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
               >
             </div>
             <div class="md:mt-0 mt-4 flex-1 text-right">
-              {nextUrl ? <a href={nextUrl}>下一篇 |</a> : null}
-              {prevUrl ? <a href={prevUrl}>上一篇 |</a> : null}
-              <a href='/'>去首页 |</a>
-              <a href='/rss.xml' title='Subscribe' target='_blank' class='xl:inline-block hidden'> RSS</a>
+              {nextUrl ? <a href={nextUrl}>{copy.nextPost}</a> : null}
+              {prevUrl ? <a href={prevUrl}>{copy.previousPost}</a> : null}
+              <a href={homeUrl}>{copy.home}</a>
+              <a
+                href={locale === "en" ? "/en/rss.xml" : "/rss.xml"}
+                title="Subscribe"
+                target="_blank"
+                class="xl:inline-block hidden"
+              >
+                RSS</a
+              >
             </div>
           </div>
         </div>
@@ -300,6 +403,7 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
           data-category={GISCUS.category}
           data-category-id={GISCUS.categoryId}
           data-mapping={GISCUS.mapping}
+          data-term={String(postIndex)}
           data-strict={GISCUS.strict}
           data-reactions-enabled={GISCUS.reactionsEnabled}
           data-emit-metadata={GISCUS.emitMetadata}
@@ -307,49 +411,57 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
           data-theme={GISCUS.themes.light}
           data-lang={GISCUS.lang}
           crossorigin="anonymous"
-          async></script>
+          async
+        />
       </div>
     </main>
     <!-- Image Lightbox Dialog -->
-    <dialog id="img-lightbox" aria-label="圖片預覽">
+    <dialog id="img-lightbox" aria-label={copy.imagePreview}>
       <div id="lightbox-content">
-        <button id="lightbox-live-btn" aria-label="播放 Live Photo" type="button">
+        <button
+          id="lightbox-live-btn"
+          aria-label={copy.playLivePhoto}
+          type="button"
+        >
           <span class="live-dot"></span>LIVE
         </button>
-        <button id="lightbox-close" aria-label="關閉" type="button">✕</button>
+        <button id="lightbox-close" aria-label={copy.close} type="button"
+          >✕</button
+        >
         <img id="lightbox-img" src="" alt="lightbox image" />
       </div>
     </dialog>
     <Footer />
     <script is:inline>
-      window.addEventListener('DOMContentLoaded', () => {
-        const images = document.querySelectorAll('#write img');
+      window.addEventListener("DOMContentLoaded", () => {
+        const images = document.querySelectorAll("#write img");
         images.forEach((img, index) => {
           if (index > IMAGE_CONFIG.lazyLoadThreshold) {
-            img.setAttribute('loading', 'lazy');
-            img.setAttribute('decoding', 'async');
+            img.setAttribute("loading", "lazy");
+            img.setAttribute("decoding", "async");
           }
         });
       });
     </script>
     <script is:inline>
       // Reading Progress Bar
-      window.addEventListener('DOMContentLoaded', () => {
-        const progressBar = document.getElementById('reading-progress-bar');
-        
+      window.addEventListener("DOMContentLoaded", () => {
+        const progressBar = document.getElementById("reading-progress-bar");
+
         const updateProgressBar = () => {
           const windowHeight = window.innerHeight;
           const documentHeight = document.documentElement.scrollHeight;
-          const scrollTop = window.scrollY || document.documentElement.scrollTop;
-          
+          const scrollTop =
+            window.scrollY || document.documentElement.scrollTop;
+
           // Calculate progress percentage
           const scrollableHeight = documentHeight - windowHeight;
           const scrollPercentage = (scrollTop / scrollableHeight) * 100;
-          
+
           // Update progress bar width
-          progressBar.style.width = Math.min(scrollPercentage, 100) + '%';
+          progressBar.style.width = Math.min(scrollPercentage, 100) + "%";
         };
-        
+
         // Throttle function for better performance
         let ticking = false;
         const onScroll = () => {
@@ -361,12 +473,12 @@ let prevUrl = postIndex < allPosts.length ? getPostUrl(allPosts[allPosts.length 
             ticking = true;
           }
         };
-        
+
         // Initial update
         updateProgressBar();
-        
+
         // Update on scroll
-        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener("scroll", onScroll, { passive: true });
       });
     </script>
   </body>

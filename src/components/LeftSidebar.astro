@@ -1,13 +1,33 @@
 ---
 const { currentPage } = Astro.props;
-import AstroLogo from './Header/AstroLogo.astro';
-import { SITE } from '@/config';
-import { parseTitle, sortPosts, getPostId } from '@/util';
+import AstroLogo from "./Header/AstroLogo.astro";
+import LanguageSwitch from "./LanguageSwitch.astro";
+import { SITE_I18N, UI_COPY, type Locale } from "@/config";
+import { parseTitle, sortPosts, getPostId } from "@/util";
 
-const posts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
-const allPosts = sortPosts(posts);
+interface Props {
+  currentPage: string;
+  locale?: Locale;
+  alternateUrl?: string;
+}
 
-let currentPageMatch = currentPage.slice(1).replace(/\/$/, '');
+const { locale = "zh", alternateUrl = locale === "zh" ? "/en/" : "/" } =
+  Astro.props;
+const zhPosts = Object.values(
+  import.meta.glob("../pages/posts/*.md", { eager: true }),
+);
+const enPosts = Object.values(
+  import.meta.glob("../pages/en/posts/*.md", { eager: true }),
+);
+const allPosts = sortPosts(locale === "zh" ? zhPosts : enPosts);
+const site = SITE_I18N[locale];
+const copy = UI_COPY[locale];
+
+const currentPageMatch = currentPage
+  .replace(/^\/en(?=\/|$)/, "")
+  .slice(1)
+  .replace(/\/$/, "");
+const postPathPrefix = locale === "en" ? "/en" : "";
 
 const sidebarSections = allPosts.reduce((sections, post, index) => {
   const route = {
@@ -15,54 +35,61 @@ const sidebarSections = allPosts.reduce((sections, post, index) => {
     link: `posts/${getPostId(post)}`,
   };
   if (index === 0) {
-    sections.push({ text: '', children: [] });
+    sections.push({ text: "", children: [] });
   }
   sections[sections.length - 1].children.push(route);
   return sections;
 }, []);
 ---
 
-<nav aria-labelledby='grid-left' class='pt-6 text-gray-800 dark:text-gray-200'>
-  <div class='logo flex'>
-    <a href='/' class='logo-image' data-astro-prefetch>
+<nav aria-labelledby="grid-left" class="pt-6 text-gray-800 dark:text-gray-200">
+  <div class="logo flex">
+    <a href={site.homePath} class="logo-image" data-astro-prefetch>
       <AstroLogo size={40} />
     </a>
-    <a href='/' data-astro-prefetch>
-      <h1 class='text-gray-800 dark:text-gray-200'>{SITE.title}</h1>
+    <a href={site.homePath} data-astro-prefetch>
+      <h1 class="text-gray-800 dark:text-gray-200">{site.title}</h1>
     </a>
+    <LanguageSwitch locale={locale} href={alternateUrl} />
   </div>
-  <ul class='nav-groups'>
+  <ul class="nav-groups">
     {
-      sidebarSections.map((section) => (
-        <li>
-          <div class='nav-group'>
-            <ul>
-              {section.children.map((child) => (
-                <li class='nav-link'>
-                  <a
-                    data-astro-prefetch
-                    href={`/${child.link}`}
-                    aria-current={`${decodeURIComponent(currentPageMatch) === child.link ? 'page' : 'false'}`}
-                  >
-                    {child.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+      sidebarSections.length ? (
+        sidebarSections.map((section) => (
+          <li>
+            <div class="nav-group">
+              <ul>
+                {section.children.map((child) => (
+                  <li class="nav-link">
+                    <a
+                      data-astro-prefetch
+                      href={`${postPathPrefix}/${child.link}`}
+                      aria-current={`${decodeURIComponent(currentPageMatch) === child.link ? "page" : "false"}`}
+                    >
+                      {child.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))
+      ) : (
+        <li class="empty-state">
+          {locale === "en" ? "English issues are coming soon." : ""}
         </li>
-      ))
+      )
     }
   </ul>
 </nav>
 
 <script is:inline>
-  document.addEventListener('DOMContentLoaded', () => {
-    const navGroups = document.querySelector('.nav-groups');
+  document.addEventListener("DOMContentLoaded", () => {
+    const navGroups = document.querySelector(".nav-groups");
 
     if (!navGroups) return;
 
-    const savedScrollPosition = localStorage.getItem('sidebarScrollPosition');
+    const savedScrollPosition = localStorage.getItem("sidebarScrollPosition");
     if (savedScrollPosition !== null) {
       navGroups.scrollTop = parseInt(savedScrollPosition, 10);
     } else {
@@ -72,15 +99,15 @@ const sidebarSections = allPosts.reduce((sections, post, index) => {
       }
     }
 
-    navGroups.style.visibility = 'visible';
+    navGroups.style.visibility = "visible";
 
-    localStorage.removeItem('sidebarScrollPosition');
+    localStorage.removeItem("sidebarScrollPosition");
 
-    navGroups.addEventListener('click', (event) => {
-      const link = event.target.closest('a');
+    navGroups.addEventListener("click", (event) => {
+      const link = event.target.closest("a");
       if (link) {
         const scrollPosition = navGroups.scrollTop;
-        localStorage.setItem('sidebarScrollPosition', scrollPosition);
+        localStorage.setItem("sidebarScrollPosition", scrollPosition);
       }
     });
   });
@@ -135,7 +162,7 @@ const sidebarSections = allPosts.reduce((sections, post, index) => {
     color: var(--theme-accent);
   }
 
-  .nav-link a[aria-current='page'] {
+  .nav-link a[aria-current="page"] {
     color: var(--theme-accent);
     font-weight: bolder;
   }
@@ -183,5 +210,17 @@ const sidebarSections = allPosts.reduce((sections, post, index) => {
   .logo h1 {
     font: inherit;
     margin: 0;
+  }
+
+  .logo :global(.language-switch) {
+    margin-left: auto;
+    padding: 0.5rem;
+  }
+
+  .empty-state {
+    color: var(--theme-text-secondary, var(--theme-text));
+    font-size: 0.95rem;
+    line-height: 1.5;
+    padding: 1rem 0.7rem;
   }
 </style>

@@ -1,6 +1,6 @@
 # Process: History + Requirements
 
-Last updated: 2026-05-15
+Last updated: 2026-08-17
 
 ## 1) AI Execution Rules
 
@@ -28,14 +28,15 @@ Rules:
 - If exact date is unknown, use `unknown`.
 - In History dates, do not use placeholders like `XX`.
 
-| ID | Date | Feature | Status | Notes |
-|---|---|---|---|---|
-| H-20260515-01 | 2026-05-15 | Image lightbox + Live Photo experience (R-20260514-02) | done | Replaced intense.js with native `<dialog>` lightbox, added `#live` badge/playback flow, playback/error recovery and delegated events, preserved `.mov` query params, and tuned backdrop to lighter glass blur |
-| H-20260514-02 | 2026-05-14 | Fix「第NaN期」on Vercel (trailing slash in `extractFilename`) | done | `src/util.ts`: strip trailing slash before `pop()` |
-| H-20260514-01 | 2026-05-14 | Documentation system refresh (`README.md`, `AGENTS.md`, `docs/process.md`) | done | Added Docker-first workflow and requirement ledger |
-| H-20260202-01 | 2026-02-02 | Full-text search with Pagefind in production build | done | Validated in build/preview |
-| H-20260101-01 | unknown | Post reading UX improvements | done | Reading progress bar, word count, reading-time estimate |
-| H-20250101-01 | unknown | Weekly post routing and ordering model | done | `NN-title.md` -> `/posts/:id`, numeric sorting |
+| ID            | Date       | Feature                                                                    | Status | Notes                                                                                                                                                                                                         |
+| ------------- | ---------- | -------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H-20260515-01 | 2026-05-15 | Image lightbox + Live Photo experience (R-20260514-02)                     | done   | Replaced intense.js with native `<dialog>` lightbox, added `#live` badge/playback flow, playback/error recovery and delegated events, preserved `.mov` query params, and tuned backdrop to lighter glass blur |
+| H-20260817-01 | 2026-08-17 | Bilingual routing and English skeleton (R-20260817-01)                     | done   | Added `/en/` and `/en/posts/:id`, localized shared UI and metadata, and linked every Chinese post to its English placeholder.                                                                                 |
+| H-20260514-02 | 2026-05-14 | Fix「第NaN期」on Vercel (trailing slash in `extractFilename`)              | done   | `src/util.ts`: strip trailing slash before `pop()`                                                                                                                                                            |
+| H-20260514-01 | 2026-05-14 | Documentation system refresh (`README.md`, `AGENTS.md`, `docs/process.md`) | done   | Added Docker-first workflow and requirement ledger                                                                                                                                                            |
+| H-20260202-01 | 2026-02-02 | Full-text search with Pagefind in production build                         | done   | Validated in build/preview                                                                                                                                                                                    |
+| H-20260101-01 | unknown    | Post reading UX improvements                                               | done   | Reading progress bar, word count, reading-time estimate                                                                                                                                                       |
+| H-20250101-01 | unknown    | Weekly post routing and ordering model                                     | done   | `NN-title.md` -> `/posts/:id`, numeric sorting                                                                                                                                                                |
 
 Status values: `proposed` | `in_progress` | `done` | `blocked` | `dropped`
 
@@ -45,7 +46,20 @@ Status values: `proposed` | `in_progress` | `done` | `blocked` | `dropped`
 
 Add each new request as one item below.
 
+### R-20260817-01 Feature
+
+- Status: done
+- Priority: P1
+- Owner: ai
+- Goal: 建立中英文独立页面的第一阶段骨架；保留中文站现有 URL，提供英文首页、英文文章占位页和双向语言切换。
+- Acceptance Criteria:
+  - 中文首页 `/` 与英文首页 `/en/` 均可访问，并显示各自语言的页面元信息和站点文案。
+  - `/posts/:id` 可切换至 `/en/posts/:id`；英文占位页可返回同一期中文文章。
+  - 现有中文文章路由与 RSS 保持可用。
+- Outcome: 新增 49 个静态英文文章占位页与空的英文 RSS；英文稿未上线前统一提示即将推出。Header、文章页和侧栏均提供语言切换；页面加入 canonical 和中英文 `hreflang` 互链。Docker build 与生产预览冒烟检查通过。
+
 ### R-20260514-01 bug fix
+
 - Status: done
 - Priority: P1
 - Owner: ai
@@ -54,6 +68,7 @@ Add each new request as one item below.
 - Outcome: Vercel 預設對所有路由加 trailing slash（如 `/posts/49/`），導致 `extractFilename` 在 `split('/').pop()` 時拿到空字串，`parseInt("")` = NaN。修復：在 `src/util.ts` 的 `extractFilename` 中先 strip trailing slash 再解析。Build 驗證通過（99 頁，exit 0）。
 
 ### R-20260514-02 Feature
+
 - Status: done
 - Priority: P1
 - Owner: ai

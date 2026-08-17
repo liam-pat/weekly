@@ -1,0 +1,35 @@
+---
+import { UI_COPY, type Locale } from "@/config";
+
+interface Props {
+  locale: Locale;
+  href: string;
+}
+
+const { locale, href } = Astro.props;
+const copy = UI_COPY[locale];
+---
+
+<a
+  class="language-switch"
+  href={href}
+  data-astro-prefetch
+  aria-label={copy.languageSwitchTitle}
+  title={copy.languageSwitchTitle}
+>
+  {copy.languageSwitchLabel}
+</a>
+
+<style>
+  .language-switch {
+    color: var(--theme-text);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .language-switch:hover,
+  .language-switch:focus {
+    color: var(--theme-accent);
+  }
+</style>

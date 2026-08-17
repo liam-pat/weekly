@@ -1,33 +1,44 @@
 ---
-import { SITE } from '@/config';
+import { SITE, SITE_I18N, type Locale } from "@/config";
 export interface Props {
-	content: any;
-	pageURL: URL | string;
+  content: any;
+  pageURL: URL | string;
+  locale?: Locale;
+  alternates?: Partial<Record<Locale, string>>;
 }
-const { icon, keywords, author, twitterId, homePage, title, pic, description: siteDescription } = SITE;
-const { content = {}, pageURL } = Astro.props;
+const { icon, keywords, author, twitterId, pic } = SITE;
+const { content = {}, pageURL, locale = "zh", alternates } = Astro.props;
+const site = SITE_I18N[locale];
 const { title: contentTitle, description: contentDescription, image } = content;
 
-const pageTitle = contentTitle ? `${title}${contentTitle}` : title;
+const pageTitle = contentTitle ? `${site.title} ${contentTitle}` : site.title;
 const imageSrc = image || pic;
-const description = contentDescription || siteDescription;
+const description = contentDescription || site.description;
 const preloadImage = image || false;
 ---
 
-<meta name='twitter:card' content='summary_large_image' />
-<meta name='twitter:image' content={imageSrc} />
-<meta name='twitter:site' content={homePage} />
-<meta property='twitter:url' content={pageURL} />
-<meta name='twitter:creator' content={`@${twitterId}`} />
-<meta property='twitter:description' content={description} />
-<meta name='keywords' content={keywords} />
-<meta name='author' content={author} />
-<meta name='description' content={description} />
-<meta property='og:type' content='website' />
-<meta property='og:title' content={pageTitle} />
-<meta property='og:image' content={icon} />
-<meta property='og:description' content={description} />
-<meta property='og:url' content={pageURL} />
-<meta property='og:site_name' content={pageTitle} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content={imageSrc} />
+<meta name="twitter:site" content={SITE.homePage} />
+<meta property="twitter:url" content={pageURL} />
+<meta name="twitter:creator" content={`@${twitterId}`} />
+<meta property="twitter:description" content={description} />
+<meta name="keywords" content={keywords} />
+<meta name="author" content={author} />
+<meta name="description" content={description} />
+<meta property="og:type" content="website" />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:image" content={icon} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={pageURL} />
+<meta property="og:site_name" content={pageTitle} />
 
-{preloadImage && <link rel='preload' href={preloadImage} as='image' />}
+<link rel="canonical" href={pageURL} />
+{
+  alternates?.zh && (
+    <link rel="alternate" hreflang="zh-CN" href={alternates.zh} />
+  )
+}
+{alternates?.en && <link rel="alternate" hreflang="en" href={alternates.en} />}
+
+{preloadImage && <link rel="preload" href={preloadImage} as="image" />}

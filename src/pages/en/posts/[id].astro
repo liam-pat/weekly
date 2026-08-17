@@ -1,0 +1,57 @@
+---
+import PostLayout from "../../../layouts/post.astro";
+import { SITE } from "@/config";
+import { getPostNumber, sortPosts } from "@/util";
+
+export async function getStaticPaths() {
+  const posts = sortPosts(
+    Object.values(import.meta.glob("../../posts/*.md", { eager: true })),
+  );
+
+  return posts.map((post: any) => {
+    const id = getPostNumber(post);
+    return {
+      params: { id: String(id) },
+      props: { id, date: post.frontmatter.date },
+    };
+  });
+}
+
+const { id, date } = Astro.props;
+const chineseUrl = `/posts/${id}`;
+const frontmatter = {
+  date,
+  pic: SITE.pic,
+  desc: "The English translation of this issue is coming soon.",
+  url: `/en/posts/${id}`,
+  headerTitle: `Issue ${id}`,
+};
+---
+
+<PostLayout
+  frontmatter={frontmatter}
+  locale="en"
+  alternateUrl={chineseUrl}
+>
+  <section class="translation-pending" aria-label="English translation status">
+    <p>The English version of this issue is coming soon.</p>
+    <a href={chineseUrl} data-astro-prefetch>Read the Chinese original</a>
+  </section>
+</PostLayout>
+
+<style>
+  .translation-pending {
+    border: 1px solid color-mix(in srgb, var(--theme-accent) 30%, transparent);
+    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .translation-pending p {
+    margin: 0 0 0.75rem;
+  }
+
+  .translation-pending a {
+    color: var(--theme-accent);
+  }
+</style>
