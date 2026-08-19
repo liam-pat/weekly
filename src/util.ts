@@ -22,7 +22,7 @@ export const getTitlePart = (path: string): string => {
 
 // Format post title with number and title
 export const formatPostTitle = (postNumber: number, titlePart: string): string => {
-  return titlePart ? `第${postNumber}期 - ${titlePart}` : `第${postNumber}期`;
+  return titlePart ? `${postNumber} - ${titlePart}` : `${postNumber}`;
 };
 
 // Legacy: Get post ID from post object

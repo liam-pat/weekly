@@ -31,16 +31,21 @@ function defaultLayoutPlugin() {
 		const { frontmatter } = file.data.astro;
 		frontmatter.layout = '@layouts/post.astro';
 
+		const isEn = filePath.includes('/pages/en/') || filePath.includes('/en/posts/');
+		if (isEn) {
+			frontmatter.locale = 'en';
+		}
+
 		if (tree.children[0]?.value && !frontmatter.pic) {
 			const imageElement = parse(tree.children[0].value).querySelector('img');
-			frontmatter.pic = imageElement.getAttribute('src');
+			frontmatter.pic = imageElement?.getAttribute('src');
 		}
 
 		if (tree.children[1]?.children[1]?.value) {
 			frontmatter.desc = tree.children[1].children[1].value;
 		}
 
-		frontmatter.desc = frontmatter.desc || SITE.description;
+		frontmatter.desc = frontmatter.desc || (isEn ? 'Weekly notes' : SITE.description);
 		frontmatter.pic = frontmatter.pic || SITE.pic;
 
 		if (!frontmatter.date) {
@@ -66,7 +71,7 @@ export default defineConfig({
 				// Filter out URLs with post titles, keep only numeric URLs
 				// e.g., keep /posts/1/ but exclude /posts/1-title/
 				const url = new URL(page);
-				const postPathMatch = url.pathname.match(/\/posts\/(\d+)-/);
+				const postPathMatch = url.pathname.match(/\/(?:en\/)?posts\/(\d+)-/);
 				return !postPathMatch;  // Return false to exclude URLs with titles
 			},
 		}),

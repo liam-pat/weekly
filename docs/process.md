@@ -1,6 +1,6 @@
 # Process: History + Requirements
 
-Last updated: 2026-08-17
+Last updated: 2026-08-19
 
 ## 1) AI Execution Rules
 
@@ -30,6 +30,7 @@ Rules:
 
 | ID            | Date       | Feature                                                                    | Status | Notes                                                                                                                                                                                                         |
 | ------------- | ---------- | -------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H-20260819-01 | 2026-08-19 | Full English archive translation (1-49 issues)                             | done   | Translated all 49 issues into English (`src/pages/en/posts/`), updated English home cards, English RSS feed, and full-text dual-language search index                                                         |
 | H-20260515-01 | 2026-05-15 | Image lightbox + Live Photo experience (R-20260514-02)                     | done   | Replaced intense.js with native `<dialog>` lightbox, added `#live` badge/playback flow, playback/error recovery and delegated events, preserved `.mov` query params, and tuned backdrop to lighter glass blur |
 | H-20260817-01 | 2026-08-17 | Bilingual routing and English skeleton (R-20260817-01)                     | done   | Added `/en/` and `/en/posts/:id`, localized shared UI and metadata, and linked every Chinese post to its English placeholder.                                                                                 |
 | H-20260514-02 | 2026-05-14 | Fix「第NaN期」on Vercel (trailing slash in `extractFilename`)              | done   | `src/util.ts`: strip trailing slash before `pop()`                                                                                                                                                            |

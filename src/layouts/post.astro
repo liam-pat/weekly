@@ -33,17 +33,21 @@ export interface Props {
 
 const pageUrl = new URL(Astro.request.url);
 const currentPage = pageUrl.pathname;
-const {
-  locale = "zh",
-  alternateUrl = locale === "zh"
+const { date, pic, desc, url, headerTitle } = Astro.props.frontmatter || {};
+const resolvedLocale: Locale =
+  Astro.props.locale ||
+  Astro.props.frontmatter?.locale ||
+  (currentPage.startsWith("/en") ? "en" : "zh");
+
+const locale = resolvedLocale;
+const alternateUrl =
+  Astro.props.alternateUrl ||
+  (locale === "zh"
     ? `/en${currentPage}`
-    : currentPage.replace(/^\/en/, ""),
-} = Astro.props;
+    : currentPage.replace(/^\/en/, ""));
+
 const site = SITE_I18N[locale];
 const copy = UI_COPY[locale];
-
-// Use the pre-calculated title from [id].astro if available, otherwise fallback
-const { date, pic, desc, url, headerTitle } = Astro.props.frontmatter;
 
 // The next article
 const posts = Object.values(
@@ -140,7 +144,7 @@ let prevUrl =
         overflow-x: hidden;
       }
 
-      .heti h1.content-title:first-child {
+      h1.content-title:first-child {
         margin-block-start: 8px !important;
         margin-bottom: 16px;
         letter-spacing: 0.02em;
@@ -234,7 +238,7 @@ let prevUrl =
           padding: 0.8rem 0.5rem var(--doc-padding) 0.5rem;
         }
 
-        .heti h1.content-title:first-child {
+        h1.content-title:first-child {
           margin-bottom: 12px;
           font-size: 1.8rem;
         }
@@ -248,13 +252,13 @@ let prevUrl =
         border-block-end: none;
       }
 
-      .heti .pay-button {
+      .pay-button {
         color: var(--theme-bg);
         background-color: var(--theme-text);
         padding-block-end: 9px;
       }
 
-      .heti .pay-button:hover {
+      .pay-button:hover {
         border-block-end: none;
         padding-block-end: 9px;
       }
@@ -292,10 +296,7 @@ let prevUrl =
       </aside>
       <div id="grid-main">
         <div
-          class:list={[
-            "markdown-body md:mx-auto md:pb-20 pb-14 xl:max-w-7xl w-full lg:max-w-5xl md:max-w-2xl md:pl-3.5",
-            { heti: locale === "zh" },
-          ]}
+          class="markdown-body heti md:mx-auto md:pb-20 pb-14 xl:max-w-7xl w-full lg:max-w-5xl md:max-w-2xl md:pl-3.5"
           id="write"
         >
           <h1
@@ -396,23 +397,51 @@ let prevUrl =
         </div>
         <script
           is:inline
-          id="giscus-script"
-          src="https://giscus.app/client.js"
-          data-repo={GISCUS.repo}
-          data-repo-id={GISCUS.repoId}
-          data-category={GISCUS.category}
-          data-category-id={GISCUS.categoryId}
-          data-mapping={GISCUS.mapping}
-          data-term={String(postIndex)}
-          data-strict={GISCUS.strict}
-          data-reactions-enabled={GISCUS.reactionsEnabled}
-          data-emit-metadata={GISCUS.emitMetadata}
-          data-input-position={GISCUS.inputPosition}
-          data-theme={GISCUS.themes.light}
-          data-lang={GISCUS.lang}
-          crossorigin="anonymous"
-          async
-        />
+          define:vars={{ giscusConfig: GISCUS, postTerm: String(postIndex) }}
+        >
+          (function () {
+            const savedTheme = localStorage.getItem("theme");
+            const prefersDark = window.matchMedia(
+              "(prefers-color-scheme: dark)",
+            ).matches;
+            const isDark =
+              savedTheme === "dark" || (!savedTheme && prefersDark);
+            const currentTheme = isDark
+              ? giscusConfig.themes.dark
+              : giscusConfig.themes.light;
+
+            const script = document.createElement("script");
+            script.id = "giscus-script";
+            script.src = "https://giscus.app/client.js";
+            script.setAttribute("data-repo", giscusConfig.repo);
+            script.setAttribute("data-repo-id", giscusConfig.repoId);
+            script.setAttribute("data-category", giscusConfig.category);
+            script.setAttribute("data-category-id", giscusConfig.categoryId);
+            script.setAttribute("data-mapping", giscusConfig.mapping);
+            script.setAttribute("data-term", postTerm);
+            script.setAttribute("data-strict", giscusConfig.strict);
+            script.setAttribute(
+              "data-reactions-enabled",
+              giscusConfig.reactionsEnabled,
+            );
+            script.setAttribute(
+              "data-emit-metadata",
+              giscusConfig.emitMetadata,
+            );
+            script.setAttribute(
+              "data-input-position",
+              giscusConfig.inputPosition,
+            );
+            script.setAttribute("data-theme", currentTheme);
+            script.setAttribute("data-lang", giscusConfig.lang);
+            script.crossOrigin = "anonymous";
+            script.async = true;
+            document.currentScript.parentNode.insertBefore(
+              script,
+              document.currentScript,
+            );
+          })();
+        </script>
       </div>
     </main>
     <!-- Image Lightbox Dialog -->

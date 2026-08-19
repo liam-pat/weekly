@@ -1,43 +1,85 @@
 ---
 import PostLayout from "../../../layouts/post.astro";
 import { SITE } from "@/config";
-import { getPostNumber, sortPosts } from "@/util";
+import { getPostNumber, getTitlePart, sortPosts } from "@/util";
 
 export async function getStaticPaths() {
-  const posts = sortPosts(
+  const zhPosts = sortPosts(
     Object.values(import.meta.glob("../../posts/*.md", { eager: true })),
   );
+  const enPosts = Object.values(
+    import.meta.glob("./*.md", { eager: true }),
+  );
+  const enMap = new Map<number, any>();
+  for (const enPost of enPosts) {
+    enMap.set(getPostNumber(enPost), enPost);
+  }
 
-  return posts.map((post: any) => {
-    const id = getPostNumber(post);
+  return zhPosts.map((zhPost: any) => {
+    const id = getPostNumber(zhPost);
+    const enPost = enMap.get(id);
     return {
       params: { id: String(id) },
-      props: { id, date: post.frontmatter.date },
+      props: {
+        id,
+        hasTranslation: Boolean(enPost),
+        enPost,
+        date: enPost?.frontmatter?.date || zhPost.frontmatter.date,
+        zhTitleText: getTitlePart(zhPost.file),
+      },
     };
   });
 }
 
-const { id, date } = Astro.props;
+const { id, hasTranslation, enPost, date, zhTitleText } = Astro.props;
 const chineseUrl = `/posts/${id}`;
-const frontmatter = {
-  date,
-  pic: SITE.pic,
-  desc: "The English translation of this issue is coming soon.",
-  url: `/en/posts/${id}`,
-  headerTitle: `Issue ${id}`,
-};
+
+let Content: any = null;
+let frontmatter: any = null;
+
+if (hasTranslation && enPost) {
+  Content = enPost.Content;
+  const enTitleText = getTitlePart(enPost.file) || zhTitleText;
+  frontmatter = {
+    ...enPost.frontmatter,
+    date,
+    url: `/en/posts/${id}`,
+    headerTitle: `${id} - ${enTitleText}`,
+    locale: "en",
+  };
+} else {
+  frontmatter = {
+    date,
+    pic: SITE.pic,
+    desc: "The English translation of this issue is coming soon.",
+    url: `/en/posts/${id}`,
+    headerTitle: `Issue ${id}`,
+    locale: "en",
+  };
+}
 ---
 
-<PostLayout
-  frontmatter={frontmatter}
-  locale="en"
-  alternateUrl={chineseUrl}
->
-  <section class="translation-pending" aria-label="English translation status">
-    <p>The English version of this issue is coming soon.</p>
-    <a href={chineseUrl} data-astro-prefetch>Read the Chinese original</a>
-  </section>
-</PostLayout>
+{
+  hasTranslation && Content ? (
+    <Content frontmatter={frontmatter} />
+  ) : (
+    <PostLayout
+      frontmatter={frontmatter}
+      locale="en"
+      alternateUrl={chineseUrl}
+    >
+      <section
+        class="translation-pending"
+        aria-label="English translation status"
+      >
+        <p>The English version of this issue is coming soon.</p>
+        <a href={chineseUrl} data-astro-prefetch>
+          Read the Chinese original
+        </a>
+      </section>
+    </PostLayout>
+  )
+}
 
 <style>
   .translation-pending {

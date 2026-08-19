@@ -95,8 +95,6 @@ import { GISCUS } from '@/config';
   window.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-    const giscusScript = document.getElementById('giscus-script');
-
     const updateIframeTheme = (newTheme) => {
       const iframe = document.querySelector('iframe.giscus-frame');
       const src = iframe?.getAttribute('src') || '';
@@ -110,11 +108,14 @@ import { GISCUS } from '@/config';
     };
 
     const changeGiscusTheme = (newTheme) => {
-      if (giscusScript) {
-        giscusScript.setAttribute('data-theme', newTheme);
-        if (!updateIframeTheme(newTheme)) {
-          setTimeout(() => updateIframeTheme(newTheme), 200);
-        }
+      const script = document.getElementById('giscus-script');
+      if (script) {
+        script.setAttribute('data-theme', newTheme);
+      }
+      if (!updateIframeTheme(newTheme)) {
+        setTimeout(() => updateIframeTheme(newTheme), 200);
+        setTimeout(() => updateIframeTheme(newTheme), 600);
+        setTimeout(() => updateIframeTheme(newTheme), 1200);
       }
     };
 

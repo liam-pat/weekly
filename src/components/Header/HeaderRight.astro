@@ -25,7 +25,7 @@ const alternateUrl = isPostPage
 
 <div class="flex-grow text-right md:mr-1 -mr-1">
   <Search locale={locale} />
-  <LanguageSwitch locale={locale} href={alternateUrl} />
+  <span class="inline-flex items-center ml-3 md:ml-4"><LanguageSwitch locale={locale} href={alternateUrl} /></span>
   <HeaderLink href={blogPage} target="_blank">Blog</HeaderLink>
   <HeaderLink
     href={locale === "en" ? "/en/rss.xml" : "/rss.xml"}

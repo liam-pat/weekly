@@ -1,13 +1,21 @@
 ---
 import { parseTitle, getPostId } from '@/util';
+import type { Locale } from '@/config';
 
-const { post } = Astro.props;
+interface Props {
+  post: any;
+  locale?: Locale;
+}
+
+const { post, locale = 'zh' } = Astro.props;
+const isEn = locale === 'en' || post.file?.includes('/pages/en/');
 const title = parseTitle(post.file);
 const { pic, desc, date } = post.frontmatter;
+const postHref = isEn ? `/en/posts/${getPostId(post)}` : `/posts/${getPostId(post)}`;
 ---
 
 <a
-  href={`/posts/${getPostId(post)}`}
+  href={postHref}
   data-astro-prefetch
   data-image={pic}
   class="pb-3 md:mt-5 mt-4 md:mr-5 flex flex-col justify-center rounded-b-md shadow-md overflow-hidden mx-auto md:w-80 w-96 card-content preload-link"
@@ -20,9 +28,60 @@ const { pic, desc, date } = post.frontmatter;
   />
   <div class="w-full flex justify-between items-center leading-tight pt-4 pl-3 pr-3">
     <div class="text-gray-800 dark:text-gray-200">{title}</div>
-    <div class="text-grey-darker text-sm text-gray-600 dark:text-gray-300">{date}</div>
+    <div class="silver-date text-sm font-extrabold tracking-wide">{date}</div>
   </div>
   <p class="text-gray-600 dark:text-gray-300 text-sm md:w-78 w-94 overflow-hidden pt-2.5 line-clamp-2 px-3 w-full h-12">
     {desc}
   </p>
 </a>
+
+<style>
+  .silver-date {
+    position: relative;
+    display: inline-block;
+    font-weight: 700;
+    /* 白天模式：深色高级金属钛银，对比度高、字迹清晰锐利 */
+    background: linear-gradient(135deg, #334155 0%, #64748B 40%, #475569 70%, #1e293b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    overflow: hidden;
+  }
+
+  /* 夜间模式：亮白金金属银 */
+  :global(body.dark) .silver-date,
+  :global([data-theme="dark"]) .silver-date {
+    background: linear-gradient(135deg, #F8FAFC 0%, #CBD5E1 35%, #94A3B8 70%, #64748B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Shimmer sweep — GPU transform, only on hover */
+  .silver-date::after {
+    content: '';
+    position: absolute;
+    inset: -2px -20px;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.7) 45%,
+      rgba(255, 255, 255, 0.95) 50%,
+      rgba(255, 255, 255, 0.7) 55%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: none;
+    pointer-events: none;
+  }
+
+  .card-content:hover .silver-date::after {
+    animation: shimmerSweep 0.8s ease-out forwards;
+  }
+
+  @keyframes shimmerSweep {
+    to {
+      transform: translateX(120%);
+    }
+  }
+</style>

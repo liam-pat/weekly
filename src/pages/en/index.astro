@@ -3,9 +3,13 @@ import HeadCommon from "../../components/HeadCommon.astro";
 import HeadSEO from "../../components/HeadSEO.astro";
 import Header from "../../components/Header/Header.astro";
 import Footer from "../../components/Footer.astro";
+import Card from "../../components/Card.astro";
 import { SITE, SITE_I18N } from "@/config";
+import { sortPosts } from "@/util";
 
 const pageURL = `${SITE.homePage}/en/`;
+const posts = Object.values(import.meta.glob("./posts/*.md", { eager: true }));
+const allPosts = sortPosts(posts);
 ---
 
 <html lang={SITE_I18N.en.htmlLang}>
@@ -22,26 +26,36 @@ const pageURL = `${SITE.homePage}/en/`;
 
   <body>
     <Header locale="en" />
-    <main class="mx-auto mb-12 mt-8 w-full max-w-xl px-5 md:mt-14">
-      <section
-        class="rounded-md border border-stone-200 bg-white p-8 text-center shadow-sm dark:border-stone-700 dark:bg-stone-900"
-      >
-        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">
-          The English edition is coming soon.
-        </h2>
-        <p class="mt-4 leading-7 text-gray-600 dark:text-gray-300">
-          We are translating the archive. In the meantime, you can browse the
-          original Chinese edition.
-        </p>
-        <a
-          href="/"
-          data-astro-prefetch
-          class="mt-6 inline-block font-semibold text-[var(--theme-accent)] no-underline hover:underline"
-        >
-          Browse the Chinese edition
-        </a>
-      </section>
-    </main>
+    {
+      allPosts.length > 0 ? (
+        <div class="mx-auto -mt-5 mb-12 xl:max-w-7xl w-full lg:max-w-5xl md:max-w-2xl max-w-xl md:box-border box-content md:px-0 px-3">
+          <div class="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 mx-0 md:-mr-5 mr-0">
+            {allPosts.map((p) => (
+              <Card post={p} locale="en" />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <main class="mx-auto mb-12 mt-8 w-full max-w-xl px-5 md:mt-14">
+          <section class="rounded-md border border-stone-200 bg-white p-8 text-center shadow-sm dark:border-stone-700 dark:bg-stone-900">
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+              The English edition is coming soon.
+            </h2>
+            <p class="mt-4 leading-7 text-gray-600 dark:text-gray-300">
+              We are translating the archive. In the meantime, you can browse
+              the original Chinese edition.
+            </p>
+            <a
+              href="/"
+              data-astro-prefetch
+              class="mt-6 inline-block font-semibold text-[var(--theme-accent)] no-underline hover:underline"
+            >
+              Browse the Chinese edition
+            </a>
+          </section>
+        </main>
+      )
+    }
     <Footer />
   </body>
 </html>

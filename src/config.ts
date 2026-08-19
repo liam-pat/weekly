@@ -24,7 +24,7 @@ export const SITE_I18N = {
   },
   en: {
     htmlLang: "en",
-    title: "Progress Bar 7/7",
+    title: "Weekly 7/7",
     description: "Mr.Pat's weekly notes",
     homePath: "/en/",
   },
