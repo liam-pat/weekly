@@ -89,7 +89,7 @@ export default defineConfig({
 	vite: {
 		server: {
 			host: true,
-			allowedHosts: ['weekly.orb.local'],
+			allowedHosts: ['weekly.orb.local', 'apartment.weeekly.orb.local'],
 		},
 	},
 });
