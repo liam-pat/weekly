@@ -1,36 +1,42 @@
 ---
-import { parseTitle, getPostId } from '@/util';
-import type { Locale } from '@/config';
+import { getPostNumber, parseTitle } from "@/util";
+import type { Locale } from "@/config";
 
 interface Props {
   post: any;
-  locale?: Locale;
+  locale: Locale;
+  priority?: boolean;
 }
 
-const { post, locale = 'zh' } = Astro.props;
-const isEn = locale === 'en' || post.file?.includes('/pages/en/');
+const { post, locale, priority = false } = Astro.props;
 const title = parseTitle(post.file);
 const { pic, desc, date } = post.frontmatter;
-const postHref = isEn ? `/en/posts/${getPostId(post)}` : `/posts/${getPostId(post)}`;
+const postNumber = getPostNumber(post);
+const postHref = `${locale === "en" ? "/en" : ""}/posts/${postNumber}/`;
 ---
 
 <a
   href={postHref}
   data-astro-prefetch
-  data-image={pic}
-  class="pb-3 md:mt-5 mt-4 md:mr-5 flex flex-col justify-center rounded-b-md shadow-md overflow-hidden mx-auto md:w-80 w-96 card-content preload-link"
+  class="card-content mx-auto mt-4 flex w-full max-w-96 flex-col overflow-hidden rounded-b-md pb-3 shadow-md md:mr-5 md:mt-5 md:w-80"
 >
   <img
-    data-placeholder-background="linear-gradient(to bottom, var(--placeholder-gradient-start), var(--placeholder-gradient-end))"
-    data-src={pic}
+    src={pic}
     alt={title}
-    class="lozad block md:w-80 md:h-48 w-96 h-52 rounded-t-md"
+    loading={priority ? "eager" : "lazy"}
+    fetchpriority={priority ? "high" : undefined}
+    decoding="async"
+    class="block h-52 w-full rounded-t-md object-cover md:h-48 md:w-80"
   />
-  <div class="w-full flex justify-between items-center leading-tight pt-4 pl-3 pr-3">
+  <div
+    class="flex w-full items-center justify-between pl-3 pr-3 pt-4 leading-tight"
+  >
     <div class="text-gray-800 dark:text-gray-200">{title}</div>
     <div class="silver-date text-sm font-extrabold tracking-wide">{date}</div>
   </div>
-  <p class="text-gray-600 dark:text-gray-300 text-sm md:w-78 w-94 overflow-hidden pt-2.5 line-clamp-2 px-3 w-full h-12">
+  <p
+    class="line-clamp-2 h-12 w-full overflow-hidden px-3 pt-2.5 text-sm text-gray-600 dark:text-gray-300"
+  >
     {desc}
   </p>
 </a>
@@ -41,7 +47,13 @@ const postHref = isEn ? `/en/posts/${getPostId(post)}` : `/posts/${getPostId(pos
     display: inline-block;
     font-weight: 700;
     /* 白天模式：深色高级金属钛银，对比度高、字迹清晰锐利 */
-    background: linear-gradient(135deg, #334155 0%, #64748B 40%, #475569 70%, #1e293b 100%);
+    background: linear-gradient(
+      135deg,
+      #334155 0%,
+      #64748b 40%,
+      #475569 70%,
+      #1e293b 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -51,7 +63,13 @@ const postHref = isEn ? `/en/posts/${getPostId(post)}` : `/posts/${getPostId(pos
   /* 夜间模式：亮白金金属银 */
   :global(body.dark) .silver-date,
   :global([data-theme="dark"]) .silver-date {
-    background: linear-gradient(135deg, #F8FAFC 0%, #CBD5E1 35%, #94A3B8 70%, #64748B 100%);
+    background: linear-gradient(
+      135deg,
+      #f8fafc 0%,
+      #cbd5e1 35%,
+      #94a3b8 70%,
+      #64748b 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -59,7 +77,7 @@ const postHref = isEn ? `/en/posts/${getPostId(post)}` : `/posts/${getPostId(pos
 
   /* Shimmer sweep — GPU transform, only on hover */
   .silver-date::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -2px -20px;
     background: linear-gradient(

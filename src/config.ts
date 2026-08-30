@@ -12,7 +12,6 @@ export const SITE = {
   homePage: "https://weekly.biyongyao.com", // Required for sitemap generation
   blogPage: "https://biyongyao.com",
   repo: "liam-pat/weekly",
-  twitterId: "unknown",
 };
 
 export const SITE_I18N = {
@@ -110,7 +109,10 @@ export const GISCUS = {
   reactionsEnabled: "1",
   emitMetadata: "0",
   inputPosition: "bottom",
-  lang: "zh-CN",
+  lang: {
+    zh: "zh-CN",
+    en: "en",
+  },
   themes: {
     light: `${COS_BASE_URL}/css/giscus-light.css`,
     dark: `${COS_BASE_URL}/css/giscus-dark.css`,

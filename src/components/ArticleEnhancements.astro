@@ -1,0 +1,241 @@
+<script>
+  // @ts-nocheck
+  import Heti from "heti/js/heti-addon.js";
+
+  new Heti(".heti").autoSpacing();
+
+  const isLivePhoto = (img) =>
+    (img.getAttribute("src") || "").includes("#live");
+
+  const toLiveUrl = (img) =>
+    (img.getAttribute("src") || img.src)
+      .replace(/#live/gi, "")
+      .replace(/(\.(jpe?g|png|webp|heic))(\?.*)?$/i, ".mov$3");
+
+  const setPlaying = (trigger, playing) => {
+    trigger.classList.toggle("playing", playing);
+  };
+
+  const articleRoot = document.getElementById("article-content");
+  const dialog = document.getElementById("img-lightbox");
+  const dialogContent = document.getElementById("lightbox-content");
+  const dialogImg = document.getElementById("lightbox-img");
+  const dialogLiveBtn = document.getElementById("lightbox-live-btn");
+  const dialogClose = document.getElementById("lightbox-close");
+  const imagePreviewLabel =
+    dialog?.getAttribute("aria-label") || "Image preview";
+
+  const toggleLivePlayback = (mode, { imageEl, triggerEl, liveUrl }) => {
+    if (!liveUrl) return;
+
+    const isInline = mode === "inline";
+    const container = isInline
+      ? imageEl.closest(".img-live-wrapper")
+      : dialogContent;
+    if (!container) return;
+
+    const videoSelector = isInline ? ".live-inline-video" : ".lightbox-video";
+    const existingVideo = container.querySelector(videoSelector);
+    if (existingVideo) {
+      existingVideo.pause();
+      existingVideo.remove();
+      imageEl.style.display = "";
+      setPlaying(triggerEl, false);
+      return;
+    }
+
+    const video = document.createElement("video");
+    video.src = liveUrl;
+    video.autoplay = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.className = isInline ? "live-inline-video" : "lightbox-video";
+    if (isInline) {
+      video.addEventListener("click", (event) => event.stopPropagation());
+    }
+
+    const restore = () => {
+      video.remove();
+      imageEl.style.display = "";
+      setPlaying(triggerEl, false);
+    };
+    video.addEventListener("ended", restore);
+    video.addEventListener("error", restore);
+
+    imageEl.style.display = "none";
+    if (isInline) container.insertBefore(video, triggerEl);
+    else container.appendChild(video);
+    video.play().catch(restore);
+    setPlaying(triggerEl, true);
+  };
+
+  articleRoot?.querySelectorAll("img").forEach((img) => {
+    if (!isLivePhoto(img)) return;
+    if (img.parentElement?.classList.contains("img-live-wrapper")) return;
+
+    const wrapper = document.createElement("span");
+    wrapper.className = "img-live-wrapper";
+
+    const badge = document.createElement("button");
+    badge.type = "button";
+    badge.className = "live-badge";
+    badge.setAttribute(
+      "aria-label",
+      dialogLiveBtn?.getAttribute("aria-label") || "Play Live Photo",
+    );
+    badge.innerHTML = '<span class="live-dot"></span>LIVE';
+
+    img.parentElement?.insertBefore(wrapper, img);
+    wrapper.append(img, badge);
+  });
+
+  if (
+    articleRoot &&
+    dialog &&
+    dialogContent &&
+    dialogImg &&
+    dialogLiveBtn &&
+    dialogClose
+  ) {
+    const findLightboxImage = (target) => {
+      if (!(target instanceof Element)) return null;
+      const trigger = target.closest("[data-lightbox-trigger]");
+      if (!trigger || !articleRoot.contains(trigger)) return null;
+      return trigger.matches("img") ? trigger : trigger.querySelector("img");
+    };
+
+    const openLightbox = (img) => {
+      const live = isLivePhoto(img);
+      dialogImg.src = (img.getAttribute("src") || img.src).replace(
+        /#live/gi,
+        "",
+      );
+      dialogImg.alt = img.getAttribute("alt") || imagePreviewLabel;
+      dialogImg.style.display = "block";
+      dialogClose.style.display = "flex";
+      dialogLiveBtn.style.display = live ? "flex" : "none";
+      if (live) dialogLiveBtn.dataset.liveUrl = toLiveUrl(img);
+      else delete dialogLiveBtn.dataset.liveUrl;
+      dialog.showModal();
+    };
+
+    articleRoot.querySelectorAll("img").forEach((img) => {
+      const link = img.closest("a");
+      const trigger = link || img;
+      const alt = img.getAttribute("alt")?.trim();
+
+      trigger.dataset.lightboxTrigger = "";
+      trigger.setAttribute("aria-haspopup", "dialog");
+      if (!trigger.hasAttribute("aria-label")) {
+        trigger.setAttribute(
+          "aria-label",
+          alt ? `${imagePreviewLabel}: ${alt}` : imagePreviewLabel,
+        );
+      }
+
+      if (!link) {
+        img.tabIndex = 0;
+        img.setAttribute("role", "button");
+      }
+    });
+
+    articleRoot.addEventListener("click", (event) => {
+      const badge = event.target.closest(".live-badge");
+      if (badge && articleRoot.contains(badge)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const img = badge.closest(".img-live-wrapper")?.querySelector("img");
+        if (!img) return;
+        toggleLivePlayback("inline", {
+          imageEl: img,
+          triggerEl: badge,
+          liveUrl: toLiveUrl(img),
+        });
+        return;
+      }
+
+      const img =
+        event.target instanceof Element ? event.target.closest("img") : null;
+      if (!img || !articleRoot.contains(img)) return;
+      if (img.closest("a")) event.preventDefault();
+      openLightbox(img);
+    });
+
+    articleRoot.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      if (
+        event.target instanceof Element &&
+        event.target.closest(".live-badge")
+      ) {
+        return;
+      }
+
+      const img = findLightboxImage(event.target);
+      if (!img) return;
+      event.preventDefault();
+      openLightbox(img);
+    });
+
+    dialogContent.addEventListener("click", (event) => {
+      if (event.target.closest("#lightbox-close")) {
+        dialog.close();
+        return;
+      }
+
+      const liveButton = event.target.closest("#lightbox-live-btn");
+      if (!liveButton) return;
+      toggleLivePlayback("dialog", {
+        imageEl: dialogImg,
+        triggerEl: dialogLiveBtn,
+        liveUrl: dialogLiveBtn.dataset.liveUrl,
+      });
+    });
+
+    dialog.addEventListener("click", (event) => {
+      if (!dialogContent.contains(event.target)) dialog.close();
+    });
+
+    dialog.addEventListener("close", () => {
+      dialogImg.src = "";
+      dialogImg.alt = imagePreviewLabel;
+      dialogImg.style.display = "block";
+      dialogClose.style.display = "none";
+      dialogLiveBtn.style.display = "none";
+      dialogLiveBtn.classList.remove("playing");
+      delete dialogLiveBtn.dataset.liveUrl;
+
+      const video = dialogContent.querySelector(".lightbox-video");
+      if (video) {
+        video.pause();
+        video.remove();
+      }
+    });
+  }
+
+  const progressBar = document.getElementById("reading-progress-bar");
+  if (progressBar) {
+    const updateProgressBar = () => {
+      const scrollableHeight = Math.max(
+        document.documentElement.scrollHeight - window.innerHeight,
+        1,
+      );
+      const scrollPercentage = (window.scrollY / scrollableHeight) * 100;
+      progressBar.style.width = `${Math.min(scrollPercentage, 100)}%`;
+    };
+
+    let ticking = false;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(() => {
+          updateProgressBar();
+          ticking = false;
+        });
+      },
+      { passive: true },
+    );
+    updateProgressBar();
+  }
+</script>

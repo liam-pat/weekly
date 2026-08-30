@@ -14,6 +14,13 @@ const copy = UI_COPY[locale];
 <site-search
   id="search"
   class="ms-auto relative md:inline-block hidden site-search"
+  data-translations={JSON.stringify({
+    placeholder: copy.searchPlaceholder,
+    zero_results: copy.searchZeroResults,
+    many_results: copy.searchManyResults,
+    clear_search: copy.searchClear,
+    load_more: copy.searchLoadMore,
+  })}
 >
   <button
     data-open-modal
@@ -33,39 +40,22 @@ const copy = UI_COPY[locale];
         class="ms-auto cursor-pointer rounded-full px-4 py-2 close-icon"
         >X</button
       >
-      {
-        import.meta.env.DEV ? (
-          <div class="mx-auto text-center">
-            <p>
-              Search is only available in production builds. <br />
-              Try building and previewing the site to test it out locally.
-            </p>
-          </div>
-        ) : (
-          <div class="search-container w-full">
-            <div id="pagefind__search" />
-          </div>
-        )
-      }
+      <div class="search-container w-full">
+        <div id="pagefind__search"></div>
+      </div>
     </div>
   </dialog>
 </site-search>
 
-<script
-  define:vars={{
-    searchTranslations: {
-      placeholder: copy.searchPlaceholder,
-      zero_results: copy.searchZeroResults,
-      many_results: copy.searchManyResults,
-      clear_search: copy.searchClear,
-      load_more: copy.searchLoadMore,
-    },
-  }}
->
-  import { animate } from "motion";
+<script>
   class SiteSearch extends HTMLElement {
-    constructor() {
-      super();
+    private initialized = false;
+
+    connectedCallback() {
+      if (this.initialized) return;
+      this.initialized = true;
+
+      const searchTranslations = JSON.parse(this.dataset.translations ?? "{}");
       const openBtn = this.querySelector(
         "button[data-open-modal]",
       ) as HTMLButtonElement;
@@ -74,75 +64,94 @@ const copy = UI_COPY[locale];
       ) as HTMLButtonElement;
       const dialog = this.querySelector("dialog");
       const dialogFrame = this.querySelector(".dialog-frame");
+      const searchContainer = this.querySelector(
+        "#pagefind__search",
+      ) as HTMLElement | null;
 
       if (openBtn && closeBtn && dialog && dialogFrame) {
-        const onWindowClick = (event) => {
+        let searchInitialization: Promise<void> | undefined;
+
+        const initializeSearch = () => {
+          if (!searchContainer) {
+            return Promise.resolve();
+          }
+
+          searchInitialization ??= import("@pagefind/default-ui")
+            .then(({ PagefindUI }) => {
+              new PagefindUI({
+                element: searchContainer,
+                baseUrl: import.meta.env.BASE_URL,
+                bundlePath:
+                  import.meta.env.BASE_URL.replace(/\/$/, "") + "/pagefind/",
+                showImages: false,
+                translations: searchTranslations,
+              });
+            })
+            .catch((error) => {
+              searchInitialization = undefined;
+              console.error("Failed to initialize search", error);
+            });
+
+          return searchInitialization;
+        };
+
+        const onWindowClick = (event: MouseEvent) => {
           if (
+            event.target instanceof Node &&
             document.body.contains(event.target) &&
             !dialogFrame.contains(event.target)
           )
             closeModal();
         };
 
-        const openModal = (event) => {
+        const openModal = (event?: Event) => {
           dialog.showModal();
 
-          animate(
-            "dialog",
-            {
-              clipPath: [
-                "polygon(0 0, 100% 0, 100% -200%, -200% -200%)",
-                "polygon(0 0, 100% 0, 100% 100%, 0% 100%)",
-              ],
-              opacity: [0, 1],
-            },
-            { duration: 0.2 },
+          dialog.animate(
+            [
+              {
+                clipPath: "polygon(0 0, 100% 0, 100% -200%, -200% -200%)",
+                opacity: 0,
+              },
+              {
+                clipPath: "polygon(0 0, 100% 0, 100% 100%, 0% 100%)",
+                opacity: 1,
+              },
+            ],
+            { duration: 200, easing: "ease-out", fill: "both" },
           );
           document.body.classList.add("overflow-hidden");
-          this.querySelector("input")?.focus();
+          void initializeSearch().then(() =>
+            this.querySelector<HTMLInputElement>("input")?.focus(),
+          );
           event?.stopPropagation();
           window.addEventListener("click", onWindowClick);
         };
 
         const closeModal = () => {
-          dialog.close();
           document.body.classList.remove("overflow-hidden");
           window.removeEventListener("click", onWindowClick);
+          if (dialog.open) dialog.close();
         };
 
         openBtn.addEventListener("click", openModal);
         openBtn.disabled = false;
         closeBtn.addEventListener("click", closeModal);
-        document.addEventListener("astro:after-swap", closeModal);
+        dialog.addEventListener("close", closeModal);
 
         window.addEventListener("keydown", (e) => {
           if (e.key === "/" && !dialog.open) {
-            openModal(event);
+            openModal(e);
             e.preventDefault();
           }
-        });
-
-        window.addEventListener("DOMContentLoaded", () => {
-          if (import.meta.env.DEV) return;
-          const onIdle =
-            window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
-          onIdle(async () => {
-            const { PagefindUI } = await import("@pagefind/default-ui");
-            new PagefindUI({
-              element: "#pagefind__search",
-              baseUrl: import.meta.env.BASE_URL,
-              bundlePath:
-                import.meta.env.BASE_URL.replace(/\/$/, "") + "/pagefind/",
-              showImages: false,
-              translations: searchTranslations,
-            });
-          });
         });
       }
     }
   }
 
-  customElements.define("site-search", SiteSearch);
+  if (!customElements.get("site-search")) {
+    customElements.define("site-search", SiteSearch);
+  }
 </script>
 
 <style is:global>

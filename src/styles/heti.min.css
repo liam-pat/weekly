@@ -1,6 +1,6 @@
 :root {
-  --text-font: 'LXGW WenKai Screen R', sans-serif;
-  --code-text-font: 'LXGW WenKai Screen R', sans-serif;
+  --text-font: "LXGW WenKai Screen R", sans-serif;
+  --code-text-font: "LXGW WenKai Screen R", sans-serif;
 }
 
 html {
@@ -16,13 +16,10 @@ body {
   color: var(--text-color);
 }
 
-img {
+.heti img {
   max-width: 100%;
   height: auto;
   object-fit: cover;
-}
-
-.heti img {
   border-radius: 8px;
 }
 
@@ -53,7 +50,7 @@ a,
 
 .heti::before,
 .heti::after {
-  content: '';
+  content: "";
   display: table;
 }
 
@@ -120,15 +117,15 @@ a,
   text-align: left;
 }
 
-.heti p[align='center'] {
+.heti p[align="center"] {
   text-align: center;
 }
 
-.heti p[align='left'] {
+.heti p[align="left"] {
   text-align: left;
 }
 
-.heti p[align='right'] {
+.heti p[align="right"] {
   text-align: right;
 }
 
@@ -184,7 +181,8 @@ blockquote blockquote {
   }
 }
 
-.dark .heti pre,.dark .heti code {
+.dark .heti pre,
+.dark .heti code {
   background-color: #151515 !important;
 }
 
@@ -456,7 +454,7 @@ blockquote blockquote {
 } */
 
 .heti q {
-  quotes: '「' '」' '『' '』';
+  quotes: "「" "」" "『" "』";
 }
 
 .heti q:not(:lang(zh)):not(:lang(ja)):not(:lang(kr)),
@@ -474,7 +472,8 @@ blockquote blockquote {
   font-size: 0.875em;
 }
 
-.heti > p > small {
+.heti > p > small,
+.heti #article-content > p > small {
   display: inherit;
   margin-top: -0.6em;
 }
@@ -722,7 +721,7 @@ blockquote blockquote {
 }
 
 .heti--vertical q {
-  quotes: '「' '」' '『' '』';
+  quotes: "「" "」" "『" "』";
 }
 
 .heti--ancient,
@@ -975,7 +974,7 @@ blockquote blockquote {
   padding-inline-start: 24px;
 }
 
-.heti ul.cb input[type='checkbox'] {
+.heti ul.cb input[type="checkbox"] {
   position: relative;
   font-size: 1rem;
   width: 1rem;
@@ -984,8 +983,8 @@ blockquote blockquote {
   cursor: pointer;
 }
 
-.heti ul.cb input[type='checkbox']::before {
-  content: '';
+.heti ul.cb input[type="checkbox"]::before {
+  content: "";
   position: absolute;
   top: -6px;
   bottom: -6px;
@@ -1077,7 +1076,7 @@ code.language-mermaid {
   padding: 0;
 }
 
-mjx-container[display='block'] {
+mjx-container[display="block"] {
   display: block;
   margin: 1em 0;
 }
@@ -1139,7 +1138,7 @@ img.emoji {
   font-size: 0.8em !important;
 }
 
-img[loading='lazy'] {
+img[loading="lazy"] {
   background-color: #eef1f2;
   outline-color: #eef1f2;
   border-radius: 8px;

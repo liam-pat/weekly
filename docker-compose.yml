@@ -1,12 +1,16 @@
 services:
   weekly:
-    image: node:20
+    image: node:24
     container_name: weekly
     labels:
       - dev.orbstack.domains=weekly.orb.local
     volumes:
       - "./:/weekly"
+      - "weekly_node_modules:/weekly/node_modules"
     working_dir: "/weekly"
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    command: sh -c "npm install && npm run dev -- --ignore-lock --host 0.0.0.0"
     ports:
       - 4321:4321
+
+volumes:
+  weekly_node_modules:

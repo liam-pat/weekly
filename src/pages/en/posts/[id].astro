@@ -1,15 +1,13 @@
 ---
 import PostLayout from "../../../layouts/post.astro";
 import { SITE } from "@/config";
-import { getPostNumber, getTitlePart, sortPosts } from "@/util";
+import { getPostNumber, sortPosts } from "@/util";
 
 export async function getStaticPaths() {
   const zhPosts = sortPosts(
     Object.values(import.meta.glob("../../posts/*.md", { eager: true })),
   );
-  const enPosts = Object.values(
-    import.meta.glob("./*.md", { eager: true }),
-  );
+  const enPosts = Object.values(import.meta.glob("./*.md", { eager: true }));
   const enMap = new Map<number, any>();
   for (const enPost of enPosts) {
     enMap.set(getPostNumber(enPost), enPost);
@@ -25,46 +23,31 @@ export async function getStaticPaths() {
         hasTranslation: Boolean(enPost),
         enPost,
         date: enPost?.frontmatter?.date || zhPost.frontmatter.date,
-        zhTitleText: getTitlePart(zhPost.file),
       },
     };
   });
 }
 
-const { id, hasTranslation, enPost, date, zhTitleText } = Astro.props;
+const { id, hasTranslation, enPost, date } = Astro.props;
 const chineseUrl = `/posts/${id}`;
 
-let Content: any = null;
-let frontmatter: any = null;
-
-if (hasTranslation && enPost) {
-  Content = enPost.Content;
-  const enTitleText = getTitlePart(enPost.file) || zhTitleText;
-  frontmatter = {
-    ...enPost.frontmatter,
-    date,
-    url: `/en/posts/${id}`,
-    headerTitle: `${id} - ${enTitleText}`,
-    locale: "en",
-  };
-} else {
-  frontmatter = {
-    date,
-    pic: SITE.pic,
-    desc: "The English translation of this issue is coming soon.",
-    url: `/en/posts/${id}`,
-    headerTitle: `Issue ${id}`,
-    locale: "en",
-  };
-}
+const Content = enPost?.Content;
+const fallbackFrontmatter = {
+  date,
+  pic: SITE.pic,
+  desc: "The English translation of this issue is coming soon.",
+  url: `/en/posts/${id}`,
+  headerTitle: `Issue ${id}`,
+  locale: "en" as const,
+};
 ---
 
 {
   hasTranslation && Content ? (
-    <Content frontmatter={frontmatter} />
+    <Content />
   ) : (
     <PostLayout
-      frontmatter={frontmatter}
+      frontmatter={fallbackFrontmatter}
       locale="en"
       alternateUrl={chineseUrl}
     >

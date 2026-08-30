@@ -1,33 +1,20 @@
 ---
-import { sortPosts } from '@/util';
+import { getPostNumber } from "@/util";
 
 export async function getStaticPaths() {
-  const posts = Object.values(import.meta.glob('./*.md', { eager: true }));
+  const posts = Object.values(import.meta.glob("./*.md", { eager: true }));
   return posts.map((post: any) => {
-    // Parse filename: "48-Title.md"
-    const filename = post.file.split('/').pop().replace('.md', '');
-    const parts = filename.split('-');
-    // Remove leading zeros from ID (e.g., "06" -> "6")
-    const id = parseInt(parts[0], 10).toString();
-    const titleText = parts.slice(1).join('-');
-    
+    const id = String(getPostNumber(post));
+
     return {
       params: { id },
-      props: { post, id, titleText },
+      props: { post },
     };
   });
 }
 
-const { post, id, titleText } = Astro.props;
+const { post } = Astro.props;
 const { Content } = post;
-
-// Construct the new frontmatter to pass to the Layout
-const frontmatter = {
-  ...post.frontmatter,
-  url: `/posts/${id}`,
-  titleText: titleText,
-  headerTitle: `${id} - ${titleText}` 
-};
 ---
 
-<Content frontmatter={frontmatter} />
+<Content />

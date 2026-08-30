@@ -6,7 +6,7 @@ export interface Props {
   locale?: Locale;
   alternates?: Partial<Record<Locale, string>>;
 }
-const { icon, keywords, author, twitterId, pic } = SITE;
+const { keywords, author, pic } = SITE;
 const { content = {}, pageURL, locale = "zh", alternates } = Astro.props;
 const site = SITE_I18N[locale];
 const { title: contentTitle, description: contentDescription, image } = content;
@@ -15,23 +15,23 @@ const pageTitle = contentTitle ? `${site.title} ${contentTitle}` : site.title;
 const imageSrc = image || pic;
 const description = contentDescription || site.description;
 const preloadImage = image || false;
+const socialType = contentTitle ? "article" : "website";
 ---
 
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:image" content={imageSrc} />
-<meta name="twitter:site" content={SITE.homePage} />
-<meta property="twitter:url" content={pageURL} />
-<meta name="twitter:creator" content={`@${twitterId}`} />
-<meta property="twitter:description" content={description} />
+<meta name="twitter:url" content={pageURL} />
+<meta name="twitter:description" content={description} />
 <meta name="keywords" content={keywords} />
 <meta name="author" content={author} />
 <meta name="description" content={description} />
-<meta property="og:type" content="website" />
+<meta property="og:type" content={socialType} />
 <meta property="og:title" content={pageTitle} />
-<meta property="og:image" content={icon} />
+<meta property="og:image" content={imageSrc} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={pageURL} />
-<meta property="og:site_name" content={pageTitle} />
+<meta property="og:site_name" content={site.title} />
 
 <link rel="canonical" href={pageURL} />
 {

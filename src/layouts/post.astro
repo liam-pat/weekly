@@ -7,6 +7,7 @@ import AstroLogo from "../components/Header/AstroLogo.astro";
 import LeftSidebar from "../components/LeftSidebar.astro";
 import Search from "../components/Header/Search.astro";
 import LanguageSwitch from "../components/LanguageSwitch.astro";
+import ArticleEnhancements from "../components/ArticleEnhancements.astro";
 import {
   SITE,
   SITE_I18N,
@@ -16,7 +17,7 @@ import {
   GISCUS,
   type Locale,
 } from "@/config";
-import { parseTitle, sortPosts, getIndex, getPostId } from "@/util";
+import { getPostNumber, parseTitle, sortPosts } from "@/util";
 
 export interface Props {
   frontmatter: {
@@ -25,8 +26,9 @@ export interface Props {
     desc: string;
     url: string;
     headerTitle?: string;
+    locale?: Locale;
   };
-  title: string;
+  title?: string;
   locale?: Locale;
   alternateUrl?: string;
 }
@@ -40,37 +42,50 @@ const resolvedLocale: Locale =
   (currentPage.startsWith("/en") ? "en" : "zh");
 
 const locale = resolvedLocale;
+const postIndex = getPostNumber(currentPage);
+const canonicalPath = `${locale === "en" ? "/en" : ""}/posts/${postIndex}/`;
+const defaultAlternateUrl = `${locale === "zh" ? "/en" : ""}/posts/${postIndex}/`;
 const alternateUrl =
-  Astro.props.alternateUrl ||
-  (locale === "zh"
-    ? `/en${currentPage}`
-    : currentPage.replace(/^\/en/, ""));
+  Astro.props.alternateUrl != null
+    ? `${Astro.props.alternateUrl.replace(/\/+$/, "")}/`
+    : defaultAlternateUrl;
+const normalizedCurrentPage = `${currentPage.replace(/\/+$/, "")}/`;
+const isCanonicalRoute = normalizedCurrentPage === canonicalPath;
 
 const site = SITE_I18N[locale];
 const copy = UI_COPY[locale];
 
-// The next article
 const posts = Object.values(
   import.meta.glob("../pages/posts/*.md", { eager: true }),
 );
 const allPosts = sortPosts(posts);
-const postIndex = getIndex(currentPage);
-
-// Enhanced title logic: if headerTitle is missing, find it in allPosts
-let title = headerTitle;
-if (!title) {
-  const currentPost = allPosts.find((p) => getPostId(p) === postIndex);
-  if (currentPost) {
-    title = parseTitle(currentPost.file);
-  } else {
-    title = parseTitle(currentPage);
-  }
-}
+const localizedPosts: any[] =
+  locale === "en"
+    ? Object.values(import.meta.glob("../pages/en/posts/*.md", { eager: true }))
+    : posts;
+const currentPost = localizedPosts.find(
+  (post) => getPostNumber(post) === postIndex,
+);
+const title =
+  headerTitle ||
+  (currentPost ? parseTitle(currentPost.file) : parseTitle(currentPage));
 
 // Calculate article statistics
 // In Astro 5.x, slots can only be rendered once, so we store the result
 const compiledContent = await Astro.slots.render("default");
-const textContent = compiledContent
+let imageIndex = 0;
+const articleContent = compiledContent.replace(/<img\b[^>]*>/gi, (imageTag) => {
+  const shouldLazyLoad = imageIndex > IMAGE_CONFIG.lazyLoadThreshold;
+  imageIndex += 1;
+  if (!shouldLazyLoad) return imageTag;
+
+  const attributes = [
+    /\sloading\s*=/.test(imageTag) ? "" : ' loading="lazy"',
+    /\sdecoding\s*=/.test(imageTag) ? "" : ' decoding="async"',
+  ].join("");
+  return imageTag.replace(/^<img\b/i, `<img${attributes}`);
+});
+const textContent = articleContent
   .replace(/<[^>]*>/g, "")
   .replace(/\s+/g, " ")
   .trim();
@@ -95,26 +110,24 @@ const content = {
   image: pic,
   description: desc,
 };
-const currentUrl = `${SITE.homePage}${currentPage}`;
+const currentUrl = `${SITE.homePage}${canonicalPath}`;
 const alternates =
   locale === "zh"
     ? { zh: currentUrl, en: `${SITE.homePage}${alternateUrl}` }
     : { zh: `${SITE.homePage}${alternateUrl}`, en: currentUrl };
 const homeUrl = site.homePath;
+const postPrefix = locale === "en" ? "/en" : "";
+const currentPosition = allPosts.findIndex(
+  (post) => getPostNumber(post) === postIndex,
+);
 
-const getPostUrl = (post) => {
+const getPostUrl = (post: any) => {
   if (!post) return "";
-  // Check if it's a legacy post with a URL or a raw file
-  if (post.url) return post.url;
-  return `${locale === "en" ? "/en" : ""}/posts/${getPostId(post)}`;
+  return `${postPrefix}/posts/${getPostNumber(post)}/`;
 };
 
-let nextUrl =
-  postIndex > 2 ? getPostUrl(allPosts[allPosts.length - postIndex + 1]) : "";
-let prevUrl =
-  postIndex < allPosts.length
-    ? getPostUrl(allPosts[allPosts.length - postIndex - 1])
-    : "";
+const nextUrl = getPostUrl(allPosts[currentPosition + 1]);
+const prevUrl = getPostUrl(allPosts[currentPosition - 1]);
 ---
 
 <html lang={site.htmlLang}>
@@ -126,6 +139,7 @@ let prevUrl =
       locale={locale}
       alternates={alternates}
     />
+    {!isCanonicalRoute && <meta name="robots" content="noindex, follow" />}
     <meta name="generator" content={Astro.generator} />
     <title>{site.title} {title}</title>
     <style>
@@ -283,7 +297,7 @@ let prevUrl =
       /* ── Lightbox Dialog: styles live in src/styles/index.css ── */
     </style>
   </head>
-  <body>
+  <body data-pagefind-ignore={isCanonicalRoute ? undefined : true}>
     <!-- Reading Progress Bar -->
     <div id="reading-progress-bar"></div>
     <main class="layout">
@@ -300,12 +314,15 @@ let prevUrl =
           id="write"
         >
           <h1
-            class="content-title flex align-middle text-gray-800 dark:text-gray-200"
+            class="content-title flex items-center text-gray-800 dark:text-gray-200"
           >
             <a class="logo inline-block md:hidden visible" href={homeUrl}
               ><AstroLogo size={40} />
             </a>
-            <span data-pagefind-meta="title">{title}</span>
+            <span
+              data-pagefind-body={isCanonicalRoute ? true : undefined}
+              data-pagefind-meta="title">{title}</span
+            >
             <Search locale={locale} />
             <span class="ml-3 inline-flex items-center md:hidden"
               ><LanguageSwitch locale={locale} href={alternateUrl} /></span
@@ -360,8 +377,13 @@ let prevUrl =
             </span>
           </div>
 
-          <Fragment set:html={compiledContent} />
-          <div class="flex align-middle justify-center mt-4">
+          <div
+            id="article-content"
+            data-pagefind-body={isCanonicalRoute ? true : undefined}
+          >
+            <Fragment set:html={articleContent} />
+          </div>
+          <div class="mt-4 flex items-center justify-center">
             <button
               class="inline-block items-center rounded px-5 py-3 text-sm font-medium pay-button cursor-pointer"
               type="button"
@@ -397,7 +419,11 @@ let prevUrl =
         </div>
         <script
           is:inline
-          define:vars={{ giscusConfig: GISCUS, postTerm: String(postIndex) }}
+          define:vars={{
+            giscusConfig: GISCUS,
+            giscusLang: GISCUS.lang[locale],
+            postTerm: String(postIndex),
+          }}
         >
           (function () {
             const savedTheme = localStorage.getItem("theme");
@@ -433,7 +459,7 @@ let prevUrl =
               giscusConfig.inputPosition,
             );
             script.setAttribute("data-theme", currentTheme);
-            script.setAttribute("data-lang", giscusConfig.lang);
+            script.setAttribute("data-lang", giscusLang);
             script.crossOrigin = "anonymous";
             script.async = true;
             document.currentScript.parentNode.insertBefore(
@@ -460,55 +486,7 @@ let prevUrl =
         <img id="lightbox-img" src="" alt="lightbox image" />
       </div>
     </dialog>
+    <ArticleEnhancements />
     <Footer />
-    <script is:inline>
-      window.addEventListener("DOMContentLoaded", () => {
-        const images = document.querySelectorAll("#write img");
-        images.forEach((img, index) => {
-          if (index > IMAGE_CONFIG.lazyLoadThreshold) {
-            img.setAttribute("loading", "lazy");
-            img.setAttribute("decoding", "async");
-          }
-        });
-      });
-    </script>
-    <script is:inline>
-      // Reading Progress Bar
-      window.addEventListener("DOMContentLoaded", () => {
-        const progressBar = document.getElementById("reading-progress-bar");
-
-        const updateProgressBar = () => {
-          const windowHeight = window.innerHeight;
-          const documentHeight = document.documentElement.scrollHeight;
-          const scrollTop =
-            window.scrollY || document.documentElement.scrollTop;
-
-          // Calculate progress percentage
-          const scrollableHeight = documentHeight - windowHeight;
-          const scrollPercentage = (scrollTop / scrollableHeight) * 100;
-
-          // Update progress bar width
-          progressBar.style.width = Math.min(scrollPercentage, 100) + "%";
-        };
-
-        // Throttle function for better performance
-        let ticking = false;
-        const onScroll = () => {
-          if (!ticking) {
-            window.requestAnimationFrame(() => {
-              updateProgressBar();
-              ticking = false;
-            });
-            ticking = true;
-          }
-        };
-
-        // Initial update
-        updateProgressBar();
-
-        // Update on scroll
-        window.addEventListener("scroll", onScroll, { passive: true });
-      });
-    </script>
   </body>
 </html>

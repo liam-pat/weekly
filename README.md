@@ -4,14 +4,14 @@ Static weekly blog built with Astro.
 
 ## Stack
 
-- Astro (SSG)
-- Tailwind CSS
+- Astro 7 (SSG)
+- Tailwind CSS 4
 - Pagefind (search)
 - Giscus (comments)
 
 ## Quick Start
 
-Requirements: Docker Compose (default workflow), Node.js 20+ (fallback).
+Requirements: Docker Compose (default workflow), Node.js 24 (fallback).
 
 ### Docker-first (recommended)
 
@@ -20,7 +20,14 @@ docker compose up -d
 ```
 
 Site URL: `http://localhost:4321`
-Local domain (OrbStack): `http://weekly.orb.local`
+Local domains (OrbStack): `http://weekly.orb.local` and
+`http://apartment.weekly.orb.local`
+
+Container dependencies are isolated in the `weekly_node_modules` Docker volume.
+Development startup creates a production Pagefind index and serves it through
+Astro dev, so search also works on port 4321. Changes to index-affecting Astro,
+Markdown, JavaScript, TypeScript, or Astro configuration files automatically
+rebuild the local index and reload the page.
 
 ### Host fallback (only if Docker is unavailable)
 
@@ -82,8 +89,9 @@ src/
 
 ## Quality Baseline
 
-1. `docker compose exec weekly npm run build` passes
-2. one post page renders correctly in preview
+1. `docker compose exec weekly npm run astro -- check` passes
+2. `docker compose exec weekly npm run build` passes
+3. one post page renders correctly in preview
 
 ## AI Collaboration Docs
 

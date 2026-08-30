@@ -1,14 +1,26 @@
 ---
-import { GISCUS } from '@/config';
+import { GISCUS } from "@/config";
 ---
 
 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-  <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
+  <svg
+    class="sun-and-moon"
+    aria-hidden="true"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+  >
     <mask class="moon" id="moon-mask">
       <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
       <circle cx="24" cy="10" r="6" fill="black"></circle>
     </mask>
-    <circle class="sun" cx="12" cy="12" r="6" fill="currentColor" mask="url(#moon-mask)"></circle>
+    <circle
+      class="sun"
+      cx="12"
+      cy="12"
+      r="6"
+      fill="currentColor"
+      mask="url(#moon-mask)"></circle>
     <g class="sun-beams" stroke="currentColor">
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -34,7 +46,7 @@ import { GISCUS } from '@/config';
     padding: 0;
   }
 
-  .sun-and-moon > :is(.moon, .sun, .sun-beams, .moon-circle, .moon-crater) {
+  .sun-and-moon > :is(.moon, .sun, .sun-beams) {
     transform-origin: center center;
     transition:
       transform 0.5s ease,
@@ -54,88 +66,80 @@ import { GISCUS } from '@/config';
     stroke-width: 2px;
   }
 
-  .moon-circle {
-    transition: transform 0.5s ease;
-  }
-
-  [data-theme='dark'] .sun-and-moon > .sun {
+  [data-theme="dark"] .sun-and-moon > .sun {
     transform: scale(1.75);
   }
 
-  [data-theme='dark'] .sun-and-moon > .sun-beams {
+  [data-theme="dark"] .sun-and-moon > .sun-beams {
     opacity: 0;
   }
 
-  [data-theme='dark'] .sun-and-moon > .moon > circle {
+  [data-theme="dark"] .sun-and-moon > .moon > circle {
     transform: translateX(-7px);
     transition: transform 0.5s ease;
   }
 
-  [data-theme='dark'] .moon-circle {
-    transform: translateX(-12px) scale(0.92);
-  }
-
-  [data-theme='dark'] .moon-crater {
-    transform: translateX(-7px);
-  }
-
-  [data-theme='light'] .moon-circle,
-  [data-theme='light'] .moon-crater {
-    opacity: 0;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .sun-and-moon > :is(.moon, .sun, .sun-beams, .moon-circle, .moon-crater) {
+    .sun-and-moon > :is(.moon, .sun, .sun-beams) {
       transition: none;
     }
   }
 </style>
 
-<script is:inline define:vars={{ giscusLight: GISCUS.themes.light, giscusDark: GISCUS.themes.dark }}>
-  window.addEventListener('DOMContentLoaded', () => {
-    const themeToggle = document.getElementById('theme-toggle');
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-    const updateIframeTheme = (newTheme) => {
-      const iframe = document.querySelector('iframe.giscus-frame');
-      const src = iframe?.getAttribute('src') || '';
-      if (!iframe?.contentWindow || !src.startsWith('https://giscus.app/')) return false;
-      try {
-        iframe.contentWindow.postMessage({ giscus: { setConfig: { theme: newTheme } } }, 'https://giscus.app');
-        return true;
-      } catch {
-        return false;
-      }
-    };
+<script
+  is:inline
+  define:vars={{
+    giscusLight: GISCUS.themes.light,
+    giscusDark: GISCUS.themes.dark,
+  }}
+>
+  const themeToggle = document.getElementById("theme-toggle");
+  const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+  const updateIframeTheme = (newTheme) => {
+    const iframe = document.querySelector("iframe.giscus-frame");
+    const src = iframe?.getAttribute("src") || "";
+    if (!iframe?.contentWindow || !src.startsWith("https://giscus.app/"))
+      return false;
+    try {
+      iframe.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: newTheme } } },
+        "https://giscus.app",
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-    const changeGiscusTheme = (newTheme) => {
-      const script = document.getElementById('giscus-script');
-      if (script) {
-        script.setAttribute('data-theme', newTheme);
-      }
-      if (!updateIframeTheme(newTheme)) {
-        setTimeout(() => updateIframeTheme(newTheme), 200);
-        setTimeout(() => updateIframeTheme(newTheme), 600);
-        setTimeout(() => updateIframeTheme(newTheme), 1200);
-      }
-    };
+  const changeGiscusTheme = (newTheme) => {
+    const script = document.getElementById("giscus-script");
+    if (!script) return;
+    script.setAttribute("data-theme", newTheme);
+    if (!updateIframeTheme(newTheme)) {
+      setTimeout(() => updateIframeTheme(newTheme), 200);
+      setTimeout(() => updateIframeTheme(newTheme), 600);
+      setTimeout(() => updateIframeTheme(newTheme), 1200);
+    }
+  };
 
-    const setTheme = (theme) => {
-      document.body.classList.toggle('dark', theme === 'dark');
-      const giscusTheme = theme === 'dark' ? giscusDark : giscusLight;
-      changeGiscusTheme(giscusTheme);
-      document.body.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-    };
+  const setTheme = (theme) => {
+    document.body.classList.toggle("dark", theme === "dark");
+    const giscusTheme = theme === "dark" ? giscusDark : giscusLight;
+    changeGiscusTheme(giscusTheme);
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  };
 
-    const toggleTheme = () => {
-      const currentTheme = document.body.getAttribute('data-theme');
-      setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-    };
+  const toggleTheme = () => {
+    const currentTheme = document.body.getAttribute("data-theme");
+    setTheme(currentTheme === "dark" ? "light" : "dark");
+  };
 
-    const savedTheme = localStorage.getItem('theme');
-    setTheme(savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light'));
+  const savedTheme = localStorage.getItem("theme");
+  setTheme(savedTheme || (prefersDarkScheme.matches ? "dark" : "light"));
 
-    themeToggle.addEventListener('click', toggleTheme);
-    prefersDarkScheme.addEventListener('change', (e) => setTheme(e.matches ? 'dark' : 'light'));
-  });
+  themeToggle?.addEventListener("click", toggleTheme);
+  prefersDarkScheme.addEventListener("change", (event) =>
+    setTheme(event.matches ? "dark" : "light"),
+  );
 </script>
