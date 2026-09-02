@@ -1,0 +1,82 @@
+---
+const drops = Array.from({ length: 34 }, (_, index) => ({
+  x: (index * 37 + 11) % 106,
+  delay: ((index * 47) % 190) / 100,
+  duration: 1.25 + ((index * 19) % 60) / 100,
+  length: 24 + ((index * 23) % 38),
+  opacity: 0.45 + ((index * 17) % 45) / 100,
+}));
+---
+
+<div class="ambient-rain" aria-hidden="true">
+  {
+    drops.map((drop) => (
+      <i
+        class="rain-drop"
+        style={`--rain-x: ${drop.x}vw; --rain-delay: -${drop.delay}s; --rain-duration: ${drop.duration}s; --rain-length: ${drop.length}px; --rain-opacity: ${drop.opacity};`}
+      />
+    ))
+  }
+</div>
+
+<style>
+  :global(body) {
+    isolation: isolate;
+  }
+
+  .ambient-rain {
+    --rain-streak: rgb(52 84 109 / 72%);
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0.56;
+    transition: opacity 400ms ease;
+  }
+
+  .rain-drop {
+    position: absolute;
+    top: -20vh;
+    left: var(--rain-x);
+    width: 1.2px;
+    height: var(--rain-length);
+    background: linear-gradient(to bottom, transparent, var(--rain-streak));
+    opacity: var(--rain-opacity);
+    transform-origin: top center;
+    animation: ambient-rain-fall var(--rain-duration) linear infinite;
+    animation-delay: var(--rain-delay);
+  }
+
+  :global([data-theme="dark"]) .ambient-rain {
+    --rain-streak: rgb(198 224 240 / 68%);
+    opacity: 0.54;
+  }
+
+  :global(body:has(a:hover, button:hover, input:focus-visible, dialog[open]))
+    .ambient-rain {
+    opacity: 0.24;
+  }
+
+  @keyframes ambient-rain-fall {
+    from {
+      transform: translate3d(0, -15vh, 0) rotate(10deg);
+    }
+
+    to {
+      transform: translate3d(-8vw, 135vh, 0) rotate(10deg);
+    }
+  }
+
+  @media (hover: none), (pointer: coarse), (max-width: 50em) {
+    .ambient-rain {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ambient-rain {
+      display: none;
+    }
+  }
+</style>

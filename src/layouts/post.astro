@@ -1,5 +1,6 @@
 ---
 import "../styles/heti.min.css";
+import AmbientRain from "../components/AmbientRain.astro";
 import HeadCommon from "../components/HeadCommon.astro";
 import HeadSEO from "../components/HeadSEO.astro";
 import Footer from "../components/Footer.astro";
@@ -126,8 +127,10 @@ const getPostUrl = (post: any) => {
   return `${postPrefix}/posts/${getPostNumber(post)}/`;
 };
 
-const nextUrl = getPostUrl(allPosts[currentPosition + 1]);
-const prevUrl = getPostUrl(allPosts[currentPosition - 1]);
+const nextUrl =
+  currentPosition > 0 ? getPostUrl(allPosts[currentPosition - 1]) : "";
+const prevUrl =
+  currentPosition >= 0 ? getPostUrl(allPosts[currentPosition + 1]) : "";
 ---
 
 <html lang={site.htmlLang}>
@@ -298,6 +301,7 @@ const prevUrl = getPostUrl(allPosts[currentPosition - 1]);
     </style>
   </head>
   <body data-pagefind-ignore={isCanonicalRoute ? undefined : true}>
+    <AmbientRain />
     <!-- Reading Progress Bar -->
     <div id="reading-progress-bar"></div>
     <main class="layout">
@@ -331,50 +335,60 @@ const prevUrl = getPostUrl(allPosts[currentPosition - 1]);
 
           <!-- Article Statistics -->
           <div
-            class="article-stats flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4 mt-2"
+            class="article-stats text-sm text-gray-600 dark:text-gray-400 mb-4 mt-2"
           >
-            <span class="flex items-center gap-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                ></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
-              {totalWords.toLocaleString()}
-              {copy.words}
-            </span>
-            <span class="flex items-center gap-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              {copy.readingTime}
-              {readingTime}
-              {copy.minutes}
-            </span>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span class="flex items-center gap-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  ></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                {totalWords.toLocaleString()}
+                {copy.words}
+              </span>
+              <span class="flex items-center gap-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                {copy.readingTime}
+                {readingTime}
+                {copy.minutes}
+              </span>
+              <span>
+                {copy.publishedOn}<a
+                  href={`https://github.com/${SITE.repo}/tree/main/src/pages${url}.md`}
+                  target="_blank"
+                  data-pagefind-sort="date"
+                  title="Edit">{date}</a
+                >
+              </span>
+            </div>
           </div>
 
           <div
@@ -391,30 +405,18 @@ const prevUrl = getPostUrl(allPosts[currentPosition - 1]);
             >
           </div>
           <hr />
-          <div
-            class="flex justify-between md:flex-row flex-col mt-2 post-footer"
-          >
-            <div class="text-gray-800 dark:text-gray-200 flex-1">
-              {copy.publishedOn}<a
-                href={`https://github.com/${SITE.repo}/tree/main/src/pages${url}.md`}
-                target="_blank"
-                data-pagefind-sort="date"
-                title="Edit">{date}</a
-              >
-            </div>
-            <div class="md:mt-0 mt-4 flex-1 text-right">
-              {nextUrl ? <a href={nextUrl}>{copy.nextPost}</a> : null}
-              {prevUrl ? <a href={prevUrl}>{copy.previousPost}</a> : null}
-              <a href={homeUrl}>{copy.home}</a>
-              <a
-                href={locale === "en" ? "/en/rss.xml" : "/rss.xml"}
-                title="Subscribe"
-                target="_blank"
-                class="xl:inline-block hidden"
-              >
-                RSS</a
-              >
-            </div>
+          <div class="mt-2 post-footer text-right">
+            {nextUrl ? <a href={nextUrl}>{copy.nextPost}</a> : null}
+            {prevUrl ? <a href={prevUrl}>{copy.previousPost}</a> : null}
+            <a href={homeUrl}>{copy.home}</a>
+            <a
+              href={locale === "en" ? "/en/rss.xml" : "/rss.xml"}
+              title="Subscribe"
+              target="_blank"
+              class="xl:inline-block hidden"
+            >
+              RSS</a
+            >
           </div>
         </div>
         <script

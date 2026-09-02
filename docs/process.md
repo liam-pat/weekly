@@ -1,6 +1,6 @@
 # Process: History + Requirements
 
-Last updated: 2026-09-01
+Last updated: 2026-09-02
 
 ## 1) AI Execution Rules
 
@@ -30,6 +30,7 @@ Rules:
 
 | ID            | Date       | Feature                                                                    | Status | Notes                                                                                                                                                                                                         |
 | ------------- | ---------- | -------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H-20260902-01 | 2026-09-02 | Polish article navigation, metadata, and ambient rain                      | done   | Refined sidebar alignment/focus, corrected previous/next destinations, grouped the publication date with reading stats, and added theme-aware rain; rejected water experiments were removed.                  |
 | H-20260901-01 | 2026-09-01 | Harden development search and article image accessibility                  | done   | Expanded Pagefind rebuild inputs, made config-reload recovery reliable, isolated its asset namespace, handled asset failures, and restored semantic and keyboard navigation paths.                            |
 | H-20260831-04 | 2026-08-31 | Restore canonical post titles, title search, and effective image lazy-load | done   | Restored localized titles across all numeric routes and search metadata, indexed titles as searchable content, emitted lazy image attributes during rendering, and scoped Astro lock bypassing to Docker.     |
 | H-20260831-03 | 2026-08-31 | Remove upgrade leftovers and consolidate duplicated site logic             | done   | Removed dead CSS, files and packages; shared homepage, logo and RSS implementations; reduced homepage JavaScript; fixed locale-aware post navigation and Docker dev restarts.                                 |
@@ -56,6 +57,21 @@ Status values: `proposed` | `in_progress` | `done` | `blocked` | `dropped`
 ## 3) New Requirements (Write Here)
 
 Add each new request as one item below.
+
+### R-20260902-01 Enhancement
+
+- Status: done
+- Priority: P2
+- Owner: ai
+- Goal: 优化文章导航和元信息布局，并为站点增加克制的背景细雨氛围。
+- Acceptance Criteria:
+  - 中英文文章侧栏的 1–9 期编号在编号列内右对齐。
+  - 桌面精确指针设备上，侧栏闲置时柔化非当前文章并保持当前文章清晰；鼠标或键盘进入列表后全部恢复清晰。
+  - “下一篇”指向期号更大的新一期，“上一篇”指向期号更小的旧一期；首尾文章只显示存在的方向。
+  - 发布日期与字数、阅读时长显示在文章标题下方的同一统计行；窄屏空间不足时可以自然换行，文章底部不再重复显示日期。
+  - 中英文首页及文章页显示主题感知的背景细雨，且不拦截内容交互。
+  - 触屏、小屏及减少动态效果偏好下保持完整可读性并隐藏背景雨效。
+- Outcome: 侧栏链接拆分为右对齐的固定编号列、连字符列与标题列；桌面端列表闲置时以 38% 不透明度和 1.4px 模糊柔化非当前链接，交互时恢复清晰；修正倒序文章集合中的前后篇索引，使 Next 指向新一期、Previous 指向旧一期，并补充首尾和无匹配文章的边界保护；发布日期从页底移到标题下方，与字数和阅读时长组成可换行的同一统计行；新增共享 `AmbientRain` 组件，为中英文首页和文章页提供主题感知的背景细雨，并在交互时减弱。水滴与水汽方案经视觉评估后已完整撤回。Docker Prettier、Astro check（0 errors / 0 warnings / 0 hints）、生产构建（198 pages）、Pagefind（98 pages / 2 languages / 9040 words）及中英文生产预览均通过。
 
 ### R-20260901-01 Bugfix
 
