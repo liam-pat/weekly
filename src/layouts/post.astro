@@ -36,7 +36,7 @@ export interface Props {
 
 const pageUrl = new URL(Astro.request.url);
 const currentPage = pageUrl.pathname;
-const { date, pic, desc, url, headerTitle } = Astro.props.frontmatter || {};
+const { date, pic, desc, headerTitle } = Astro.props.frontmatter || {};
 const resolvedLocale: Locale =
   Astro.props.locale ||
   Astro.props.frontmatter?.locale ||
@@ -381,12 +381,7 @@ const prevUrl =
                 {copy.minutes}
               </span>
               <span>
-                {copy.publishedOn}<a
-                  href={`https://github.com/${SITE.repo}/tree/main/src/pages${url}.md`}
-                  target="_blank"
-                  data-pagefind-sort="date"
-                  title="Edit">{date}</a
-                >
+                {copy.publishedOn}<span data-pagefind-sort="date">{date}</span>
               </span>
             </div>
           </div>

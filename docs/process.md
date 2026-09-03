@@ -1,6 +1,6 @@
 # Process: History + Requirements
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 ## 1) AI Execution Rules
 
@@ -30,6 +30,7 @@ Rules:
 
 | ID            | Date       | Feature                                                                    | Status | Notes                                                                                                                                                                                                         |
 | ------------- | ---------- | -------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H-20260903-01 | 2026-09-03 | Remove the publication-date link from article details                      | done   | Kept the publication date and Pagefind date-sort metadata while rendering it as plain text on both Chinese and English article pages.                                                                         |
 | H-20260902-01 | 2026-09-02 | Polish article navigation, metadata, and ambient rain                      | done   | Refined sidebar alignment/focus, corrected previous/next destinations, grouped the publication date with reading stats, and added theme-aware rain; rejected water experiments were removed.                  |
 | H-20260901-01 | 2026-09-01 | Harden development search and article image accessibility                  | done   | Expanded Pagefind rebuild inputs, made config-reload recovery reliable, isolated its asset namespace, handled asset failures, and restored semantic and keyboard navigation paths.                            |
 | H-20260831-04 | 2026-08-31 | Restore canonical post titles, title search, and effective image lazy-load | done   | Restored localized titles across all numeric routes and search metadata, indexed titles as searchable content, emitted lazy image attributes during rendering, and scoped Astro lock bypassing to Docker.     |
@@ -57,6 +58,17 @@ Status values: `proposed` | `in_progress` | `done` | `blocked` | `dropped`
 ## 3) New Requirements (Write Here)
 
 Add each new request as one item below.
+
+### R-20260903-01 Enhancement
+
+- Status: done
+- Priority: P2
+- Owner: ai
+- Goal: 移除文章详情页发布日期的超链接。
+- Acceptance Criteria:
+  - 中英文文章详情页的发布日期显示为普通文字，不再可点击跳转至 GitHub 源文件。
+  - 保留发布日期内容及 Pagefind 日期排序元数据。
+- Outcome: 共享文章布局已将发布日期由 GitHub 编辑链接改为普通文字，并保留 `data-pagefind-sort="date"`，因此中英文文章及搜索日期排序行为不受影响。
 
 ### R-20260902-01 Enhancement
 
