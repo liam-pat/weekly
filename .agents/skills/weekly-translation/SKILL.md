@@ -1,9 +1,9 @@
 ---
-name: blog-translator
+name: weekly-translation
 description: Translate Chinese (including Cantonese expressions) blog markdown articles into English while preserving the author's voice, tone, and frontmatter structure. Use this skill whenever the user asks to translate a blog post, mentions creating an English version of an article, or adds/updates a markdown file in src/pages/posts/ that needs a corresponding English version in src/pages/en/posts. Always use this skill for any blog article translation task, even if the user just says "translate this" or "帮我翻译这篇文章" without naming the skill explicitly.
 ---
 
-# Blog Translator (Chinese → English)
+# Weekly Translation (Chinese → English)
 
 This skill translates the author's Chinese blog articles (which frequently feature Cantonese expressions, casual tech musings, and personal life reflections) into natural, engaging English, preserving the author's authentic voice and technical curiosity.
 
