@@ -20,8 +20,8 @@ docker compose up -d
 ```
 
 Site URL: `http://localhost:4321`
-Local domains (OrbStack): `http://weekly.orb.local` and
-`http://apartment.weekly.orb.local`
+Local development hosts: `http://weekly.orb.local` and
+`http://apartment.weekly.internal`
 
 Container dependencies are isolated in the `weekly_node_modules` Docker volume.
 Development startup creates a production Pagefind index and serves it through

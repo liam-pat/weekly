@@ -1,6 +1,6 @@
 # Process: History + Requirements
 
-Last updated: 2026-09-03
+Last updated: 2026-09-09
 
 ## 1) AI Execution Rules
 
@@ -30,12 +30,13 @@ Rules:
 
 | ID            | Date       | Feature                                                                    | Status | Notes                                                                                                                                                                                                         |
 | ------------- | ---------- | -------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H-20260909-01 | 2026-09-09 | Move the apartment development hostname to `.internal`                     | done   | Replaced the previous apartment `.local` host with `apartment.weekly.internal` in Astro's allowed hosts and local-development documentation to avoid special name-resolution handling.                        |
 | H-20260903-01 | 2026-09-03 | Remove the publication-date link from article details                      | done   | Kept the publication date and Pagefind date-sort metadata while rendering it as plain text on both Chinese and English article pages.                                                                         |
 | H-20260902-01 | 2026-09-02 | Polish article navigation, metadata, and ambient rain                      | done   | Refined sidebar alignment/focus, corrected previous/next destinations, grouped the publication date with reading stats, and added theme-aware rain; rejected water experiments were removed.                  |
 | H-20260901-01 | 2026-09-01 | Harden development search and article image accessibility                  | done   | Expanded Pagefind rebuild inputs, made config-reload recovery reliable, isolated its asset namespace, handled asset failures, and restored semantic and keyboard navigation paths.                            |
 | H-20260831-04 | 2026-08-31 | Restore canonical post titles, title search, and effective image lazy-load | done   | Restored localized titles across all numeric routes and search metadata, indexed titles as searchable content, emitted lazy image attributes during rendering, and scoped Astro lock bypassing to Docker.     |
 | H-20260831-03 | 2026-08-31 | Remove upgrade leftovers and consolidate duplicated site logic             | done   | Removed dead CSS, files and packages; shared homepage, logo and RSS implementations; reduced homepage JavaScript; fixed locale-aware post navigation and Docker dev restarts.                                 |
-| H-20260831-02 | 2026-08-31 | Allow the apartment OrbStack development hostname                          | done   | Corrected the misspelled Astro `allowedHosts` entry so `apartment.weekly.orb.local` can access the development server.                                                                                        |
+| H-20260831-02 | 2026-08-31 | Allow the apartment OrbStack development hostname                          | done   | Corrected the misspelled Astro `allowedHosts` entry; the apartment hostname was later migrated to `apartment.weekly.internal`.                                                                                |
 | H-20260831-01 | 2026-08-31 | Fix homepage width and search initialization regressions                   | done   | Restored mobile and centered desktop card layouts, made Pagefind initialization reliable, and enabled search in Docker development.                                                                           |
 | H-20260830-03 | 2026-08-30 | Finalize sitemap, social metadata, and local Heti delivery                 | done   | Removed ineffective sitemap hints and synthetic timestamps, corrected article/share metadata, and bundled Heti from the locked npm dependency instead of a CDN.                                               |
 | H-20260830-02 | 2026-08-30 | Fix Docker isolation, article styling, metadata, and script reliability    | done   | Isolated container dependencies, restored image/intro styling, fixed sitemap and social metadata, bundled Lozad locally, and localized Giscus.                                                                |
@@ -58,6 +59,18 @@ Status values: `proposed` | `in_progress` | `done` | `blocked` | `dropped`
 ## 3) New Requirements (Write Here)
 
 Add each new request as one item below.
+
+### R-20260909-01 Maintenance
+
+- Status: done
+- Priority: P1
+- Owner: ai
+- Goal: 将 apartment 开发域名从 `.local` 迁移到 `apartment.weekly.internal`，避免操作系统对 `.local` 域名的特殊解析和检测。
+- Acceptance Criteria:
+  - Astro 开发服务器和生产预览允许 `apartment.weekly.internal`。
+  - 旧的 apartment `.local` 域名不再出现在当前配置或文档中。
+  - 保留 `weekly.orb.local` 访问能力。
+- Outcome: `astro.config.mjs` 的 Vite allowed hosts 和 README 已统一使用 `apartment.weekly.internal`；Docker Astro check 和生产构建通过，开发及生产预览均对新 Host 返回 200、对退役 Host 返回 403，Pagefind 资源返回 200。
 
 ### R-20260903-01 Enhancement
 
@@ -133,11 +146,11 @@ Add each new request as one item below.
 - Status: done
 - Priority: P1
 - Owner: ai
-- Goal: 允许通过 `apartment.weekly.orb.local` 访问 Astro 开发服务器。
+- Goal: 允许通过 apartment 开发域名访问 Astro 开发服务器。
 - Acceptance Criteria:
-  - 使用 `Host: apartment.weekly.orb.local` 请求开发服务器时不再返回 `Blocked request`。
+  - 使用配置的 apartment Host 请求开发服务器时不再返回 `Blocked request`。
   - 保留原有 `weekly.orb.local` 本地域名访问能力。
-- Outcome: 修正 `astro.config.mjs` 中误写为 `apartment.weeekly.orb.local` 的 `allowedHosts` 配置，并在 README 中记录两个 OrbStack 本地域名。
+- Outcome: 修正当时的 `allowedHosts` 拼写；该 apartment 域名后来迁移到 `apartment.weekly.internal`。
 
 ### R-20260830-03 Bugfix
 

@@ -238,7 +238,7 @@ export default defineConfig({
     plugins: [pagefindDevPlugin(), tailwindcss()],
     server: {
       host: true,
-      allowedHosts: ["weekly.orb.local", "apartment.weekly.orb.local"],
+      allowedHosts: ["weekly.orb.local", "apartment.weekly.internal"],
     },
   },
 });
