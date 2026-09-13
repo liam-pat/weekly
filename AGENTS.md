@@ -1,55 +1,80 @@
 # AGENTS.md
 
-Minimal rules for AI sessions in this repo.
+Repository instructions for AI work. Keep this file focused on execution;
+[README.md](README.md) documents setup and architecture, and
+[docs/process.md](docs/process.md) tracks requirements and outcomes.
 
-## 1. Session Start
+## Start and Scope
 
-1. Read `README.md`, `AGENTS.md`, `docs/process.md`.
-2. Check workspace: `git status`.
-3. Use Docker-first workflow:
-   - `docker compose up -d`
-   - run project commands inside container.
+1. Read this file, `README.md`, and `docs/process.md`; run `git status --short`.
+2. Work on the user's current request. A `proposed` ledger item is context, not
+   authorization to implement unrelated backlog items.
+3. Preserve existing user changes. Read relevant source before editing; historical
+   records may describe superseded behavior. Load `docs/process-archive.md` only
+   when the task needs it.
+4. Use the repository's
+   [weekly-translation skill](.agents/skills/weekly-translation/SKILL.md) for Chinese
+   post translation or English-version synchronization. It owns this repository's
+   translation conventions, including when a personal translation skill overlaps.
+   Do not translate unrelated posts as a side effect of maintenance.
 
-## 2. Local Run and Test (Docker-first)
+## Development and Validation
 
-Docker is the default for both development and validation.
+Use Docker for project commands. For development, run `docker compose up -d`, then
+`docker compose exec -T weekly <command>`. Documentation-only work can use an
+existing container or `docker compose run --rm --no-deps weekly <command>` without
+starting the dev server. If that dependency volume is empty, initialize it with
+`docker compose run --rm --no-deps weekly npm ci` first. Use host npm only when
+Docker is unavailable, with Node.js 24 and `npm ci`; report the fallback reason.
 
-- Start service: `docker compose up -d`
-- Build validation: `docker compose exec weekly npm run build`
-- Optional checks: `docker compose exec weekly npm run astro -- check`
-- Preview check (if UI/search changed):
-  - `docker compose exec weekly npm run preview -- --host 0.0.0.0`
-  - open one page and one post route for smoke check
+Choose checks by the files' purpose, not just their extension:
 
-Only use host npm commands if Docker is unavailable.
+| Change                                                  | Required validation                                                                                                                                                    |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository docs or skill instructions only              | Prettier on changed Markdown; check links, commands, and consistency with source. Validate changed skill frontmatter and referenced resources. No site build required. |
+| Blog content or translation (`src/pages/**/posts/*.md`) | Prettier on edited files and production build; check issue pairing, dates, links, and media.                                                                           |
+| UI, configuration, dependencies, or runtime behavior    | Prettier on supported edited files, Astro check, production build, and relevant production preview smoke checks.                                                       |
 
-## 3. Change Rules
+```bash
+docker compose exec -T weekly npm exec --no -- prettier --check <changed-files>
+docker compose exec -T weekly npm run astro -- check
+docker compose exec -T weekly npm run build
+```
 
-- Content-only change (`*.md`): run build validation.
-- UI/config/behavior change: run build + preview check.
-- Search changes: validate in production build/preview, not only dev.
+For production preview, follow the isolated preview command in
+[README.md](README.md#production-preview); the development container already owns
+its port. Check one home page and one numeric post route in each affected language.
+For shared UI, check both languages and mobile/desktop layouts. Search changes
+also need an actual Chinese and English query in production preview, with results
+pointing to numeric canonical routes; HTTP 200 alone does not verify search.
+For development search changes, also check automatic index refresh in dev.
 
-## 4. Conventions
+`npm run build` includes Pagefind through `postbuild`. Avoid overlapping builds
+against the same `dist/`, including rebuilds triggered by the dev watcher. Wait
+for the automatic rebuild to finish before running explicit validation.
+Report failed, blocked, or skipped checks accurately; CI still runs Astro check
+and build for every pull request.
 
-- Formatting: Prettier.
-- Components: `PascalCase.astro`.
-- Posts: `src/pages/posts/{NN}-{title}.md`.
-- Prefer explicit frontmatter date: `YYYY/MM/DD`.
+## Editing and Git
 
-## 5. Git Flow
+- Format only touched files with the installed Prettier; avoid unrelated churn.
+- New components use `PascalCase.astro`; preserve existing names unless renaming
+  is part of the task.
+- Posts use `src/pages/posts/{NN}-{title}.md`; English posts use
+  `src/pages/en/posts/{NN}-{english-slug}.md`. Keep one file per numeric issue in
+  each language. Prefer explicit `date: YYYY/MM/DD` and preserve publication dates.
+- Keep numeric canonical routes, bilingual navigation, RSS, and Pagefind in mind
+  when changing shared post behavior; see the content model in `README.md`.
+- If creating a branch, use `feat/*`, `fix/*`, or `docs/*`. Use Conventional Commits
+  when committing. Do not commit or push unless requested.
+- Never commit `dist/`, `.astro/`, dependencies, or secrets.
 
-- Branches: `feat/*`, `fix/*`, `docs/*`.
-- Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.).
-- Never commit `dist/`.
+## Completion
 
-## 6. Delivery Format
+Update `docs/process.md` in the same task when requirements, site behavior, or
+collaboration workflow change. Follow its ledger rules; routine copy edits and
+translations do not need a new requirement unless they change those contracts.
 
-For each task, report:
-
-1. changed files
-2. what changed
-3. validation commands + results
-4. risks / follow-ups
-
-If requirements or behavior changed, update `docs/process.md` in the same task.
-If a task changes requirements or behavior and `docs/process.md` is not updated, treat the task as incomplete.
+Report changed files, the resulting behavior, validation commands and results,
+and concrete risks or remaining work. Do not mark a requirement `done` while its
+acceptance criteria or required validation remain unmet.

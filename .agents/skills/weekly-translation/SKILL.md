@@ -1,86 +1,73 @@
 ---
 name: weekly-translation
-description: Translate Chinese (including Cantonese expressions) blog markdown articles into English while preserving the author's voice, tone, and frontmatter structure. Use this skill whenever the user asks to translate a blog post, mentions creating an English version of an article, or adds/updates a markdown file in src/pages/posts/ that needs a corresponding English version in src/pages/en/posts. Always use this skill for any blog article translation task, even if the user just says "translate this" or "帮我翻译这篇文章" without naming the skill explicitly.
+description: Translate or update this weekly repository's Chinese and Cantonese blog posts into English in src/pages/en/posts. Use for a requested English version or synchronization of a changed Chinese post. Does not apply to UI copy, repository documentation, or unrelated posts.
 ---
 
 # Weekly Translation (Chinese → English)
 
-This skill translates the author's Chinese blog articles (which frequently feature Cantonese expressions, casual tech musings, and personal life reflections) into natural, engaging English, preserving the author's authentic voice and technical curiosity.
+Preserve the author's casual weekly-journal voice, humor, and technical curiosity.
+Repository paths below are relative to the project root. Follow
+[AGENTS.md](../../../AGENTS.md) for execution and validation and
+[README.md](../../../README.md#content-model) for routing and metadata behavior.
 
-## Author Persona & Tone Guidelines
+## Select the Source and Destination
 
-1. **Register**: Casual, conversational, authentic, tech-enthusiast personal weekly notes (not corporate or academic).
-2. **Voice & Attitude**:
-   - Curious and pragmatic about new tools/software.
-   - Lighthearted and self-deprecating (e.g., admitting to "talk is cheap / 说说主义", getting scammed by fake SD cards, getting bitten by Mount Emei monkeys).
-   - Conversational pacing: preserve lively punctuation nuance (`~`, `LOL`, exclamation marks) naturally in English.
-3. **Handling Cantonese & Colloquialisms**:
-   - Translate for *cultural sentiment and meaning*, not literal words.
-   - Capture the humor, wit, or irony behind Cantonese sayings without sounding stiff or overly formal.
+- Read the requested Chinese file in `src/pages/posts/` and any existing English
+  version in `src/pages/en/posts/`. For an update, inspect the relevant diff when
+  available and preserve valid existing translation outside the changed passage.
+- Match by numeric issue ID, not translated title: `01-...` and `1-...` represent
+  the same issue. Before writing, check that each language has at most one source
+  file for that issue. If duplicates exist, inspect their content and history;
+  resolve only when the intended file is clear, otherwise ask before discarding work.
+- Update an existing English file in place. Do not create a second file or rename
+  an established slug merely to improve the title wording.
+- For a new translation, preserve the source's numeric prefix exactly and choose
+  a concise lowercase, hyphen-separated English slug that conveys its title.
+  Titles are derived from filenames, so the slug also affects the displayed title.
+- Translate only the requested issue(s). A source edit may need an English update;
+  do not automatically translate the archive or override an explicit Chinese-only
+  request. For inline translation requests, return text instead of creating files
+  unless a repository edit is requested or clearly implied.
 
-## Article Structure Conventions
+## Preserve Meaning and Structure
 
-Most articles follow this standard layout:
-1. **Header Image & Caption**: `<img ... />` followed by `<small>Caption...</small>` (often a travel photo, street snap, food, or funny encounter).
-2. **Section Modules**:
-   - `## Interesting Tools` 
-   - `## Learning` 
-   - `## Reading`
-   - `## Life`
+- Keep first-person perspective, level of certainty, section order, headings,
+  lists, quotes, emphasis, captions, and meaningful emoji/punctuation. Translate
+  existing sections; do not impose a fixed set of headings or add commentary.
+- Use natural conversational English. Retain the author's understatement and
+  self-deprecation without adding jokes, claims, or stronger opinions.
+- Interpret Cantonese by context. For example, `說說主義` can be “all talk and no
+  action,” `鍾意坐坐` can mean enjoying sitting around or relaxing at cafés, and
+  `菲林` means photographic film. These are contextual choices, not fixed mappings.
+- Preserve code blocks, inline code, link destinations, image/video URLs, query
+  strings, fragments (especially Live Photo `#live`), and functional HTML
+  attributes. Translate visible captions, Markdown image alt text, and descriptive
+  HTML `alt`/`title` text; preserve markup and non-prose attribute values.
+- Do not silently repair or localize link destinations. Report a broken link
+  separately unless fixing links is part of the task.
 
-## Glossary & Expression Mapping
+## Frontmatter and Publication Dates
 
-| Chinese / Cantonese | English Equivalent | Context / Notes |
-|---|---|---|
-| 辦鬼辦馬 | Dressing up in wild costumes / Halloween cosplay | Extravagant dressing up (Post 19) |
-| 唔客气啦 | Digging in / Not holding back | Casual dining phrase (Post 44) |
-| 鍾意坐坐 | Love sitting around / chilling at cafes | Leisurely vibe (Post 38) |
-| 幾百蚊一臺，唔算貴，又唔算便 | A few hundred bucks each—neither cheap nor pricey | Balanced street shopping comment (Post 44) |
-| 冬大過年 | Winter Solstice is bigger than New Year | Traditional Cantonese idiom (Post 26) |
-| 說說主義 | All talk and no action / Talk is cheap | Self-deprecating proactivity joke (Post 01) |
-| 試水 / try try | Give it a spin / Take it for a test drive | Trying a new tool or method |
-| 亮瞎大家的👁 | Blind everyone's eyes / Super dazzling | HDR emoji effect (Post 38) |
-| 菠萝油 | Pineapple Bun with Butter (Bolo Yau) | Traditional HK/Canton cafe food |
-| 菲林 | Film (photography) | Traditional Cantonese usage for camera film |
-| 說說 / 碎碎念 | Thoughts / Quick Notes / Wrap-up | Bottom section heading |
+- Preserve frontmatter structure, keys, and non-language values. Translate existing
+  human-readable descriptions; do not add redundant `title`, `layout`, or locale
+  fields, since this repository derives those during rendering.
+- Copy an explicit source date exactly; never use the translation date as the
+  publication date. Preferred format for new explicit dates is `YYYY/MM/DD`.
+- If the source has no date, inspect its resolved date in a production build and
+  use that value for the English post so the dates match. Do not infer a new date
+  from today's date or the new English file's creation time. If the source date
+  cannot be established, ask rather than fabricate one; do not rewrite the
+  Chinese source just to add metadata unless the task includes that change.
 
-## Frontmatter Handling Rules
+## Verify and Deliver
 
-- Keep frontmatter minimal as in the source files:
-  ```markdown
-  ---
-  date: YYYY/MM/DD
-  ---
-  ```
-- Do not introduce redundant frontmatter fields unless the source file explicitly has them.
-- Post title and ID are derived directly from the English filename.
-
-## Output Rules
-
-- **Input path**: `src/pages/posts/<NN>-<chinese-title>.md` (e.g. `src/pages/posts/19-辦鬼辦馬.md`)
-- **Output path**: `src/pages/en/posts/<NN>-<english-slug>.md` (e.g. `src/pages/en/posts/19-dressing-up.md`)
-- **Filename convention**:
-  - Keep the numeric prefix `NN-` identical to keep ordering in sync.
-  - Convert the title part into a concise, lowercase, hyphen-separated slug (2–4 words) capturing the essence of the post title.
-- **Code & Media**:
-  - Keep all `<img src="..." ... />`, URLs, and code blocks intact.
-
-## Workflow
-
-1. Read the source file from `src/pages/posts/`.
-2. Propose/determine the concise English slug for `<NN>-<english-slug>.md`.
-3. Translate headings, captions, and body text ensuring author's casual voice and natural English expressions.
-4. Output to `src/pages/en/posts/<NN>-<english-slug>.md`.
-5. Run build validation (`docker compose exec weekly npm run build`).
-
-## Reference Examples
-
-**Example 1 (Humorous Caption & Cantonese tone)**
-- *Original*: `<small>拍於 24 年 05 的峨眉山，🐒太兇，不要招惹，有個小朋友手指被咬破了喲~~~</small>`
-- *Translation*: `<small>Taken at Mount Emei in May '24. The monkeys are pretty wild—definitely don't mess with them! A kid even got his finger bitten open 🐒~~~</small>`
-- *Why it works*: Maintains the light warning and playful tone with emoji/tilde without being overly stiff.
-
-**Example 2 (Tech Musings & Slang)**
-- *Original*: `之前一直想開發一個 web 來記錄自己的生活，一直有想法沒行動，典型的說說主義。`
-- *Translation*: `I've always wanted to build a site to document my life, but it was all talk and no action—a classic case of talk is cheap.`
-- *Why it works*: Translates the sentiment of "说说主义" naturally into conversational English.
+- Compare source and output for omitted paragraphs, media, links, and code; confirm
+  the numeric issue is unique in each language and publication dates agree.
+- Format only the edited Markdown and run the content checks from `AGENTS.md`,
+  including `docker compose exec -T weekly npm run build`. For multiple requested
+  translations, validate together after the edits rather than rebuilding each file.
+- Inspect the generated English numeric page for its title, date, and translated
+  content. Use `/posts/<id>/` and `/en/posts/<id>/` with the unpadded numeric ID.
+- Report the English file(s), validation results, and any unresolved source
+  ambiguity. Routine translation does not need a new process-ledger entry unless
+  it changes requirements or behavior beyond article content.
