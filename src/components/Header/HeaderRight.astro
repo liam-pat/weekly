@@ -14,7 +14,7 @@ const { locale = "zh" } = Astro.props;
 const alternateUrl = SITE_I18N[locale === "zh" ? "en" : "zh"].homePath;
 ---
 
-<div class="flex-grow text-right md:mr-1 -mr-1">
+<div class="header-actions flex-grow text-right md:mr-1 -mr-1">
   <Search locale={locale} />
   <span class="ml-3 inline-flex items-center md:ml-4">
     <LanguageSwitch locale={locale} href={alternateUrl} />

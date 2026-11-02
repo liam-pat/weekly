@@ -13,7 +13,7 @@ const site = SITE_I18N[locale];
 
 <header>
   <nav
-    class="nav-wrapper w-full max-w-96 px-4 md:max-w-2xl md:px-0 lg:max-w-5xl xl:max-w-7xl"
+    class="nav-wrapper w-full max-w-xl px-4 md:max-w-2xl md:px-0 lg:max-w-5xl xl:max-w-7xl"
     title={site.title}
   >
     <SiteLogo locale={locale} />
@@ -41,9 +41,64 @@ const site = SITE_I18N[locale];
     margin: 10px 0 5px;
   }
 
-  @media (max-width: 50em) {
+  @media (max-width: 767px) {
+    header {
+      height: auto;
+      min-height: 80px;
+      overflow: visible;
+    }
+
     .nav-wrapper {
-      margin: 5px 0;
+      margin: 0;
+      padding-block: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .nav-wrapper :global(.site-logo) {
+      font-size: clamp(1.125rem, 5vw, 1.5rem);
+      gap: 8px;
+    }
+
+    .nav-wrapper :global(.site-logo .logo-image) {
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      border-radius: 0;
+    }
+
+    .nav-wrapper :global(.logo-image img) {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      font-size: 0;
+    }
+
+    .nav-wrapper :global(.language-switch) {
+      width: 44px;
+      height: 44px;
+    }
+
+    .nav-wrapper :global(.header-actions) {
+      flex-grow: 0;
+      margin-right: 0;
+      white-space: nowrap;
+    }
+
+    .nav-wrapper :global(.header-actions > a) {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin: 0 0 0 12px;
+      font-size: 1rem;
+    }
+
+    .nav-wrapper :global(.header-actions > a.hidden) {
+      display: none;
     }
   }
 </style>
