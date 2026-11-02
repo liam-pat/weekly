@@ -261,6 +261,54 @@ const prevUrl =
         }
       }
 
+      @media (max-width: 767px) {
+        h1.content-title:first-child {
+          display: grid;
+          grid-template-columns: 44px minmax(0, 1fr) 44px;
+          gap: 16px 0;
+          align-items: center;
+          line-height: 1.4;
+        }
+
+        .content-title .logo {
+          grid-column: 1;
+          grid-row: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          margin: 0;
+          padding: 0;
+        }
+
+        .content-title .logo :global(img) {
+          width: 40px;
+          height: 40px;
+          margin: 0;
+          object-fit: contain;
+          font-size: 0;
+        }
+
+        .content-title .post-title-text {
+          grid-column: 1 / -1;
+          grid-row: 2;
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+
+        .content-title .post-language {
+          grid-column: 3;
+          grid-row: 1;
+          margin: 0;
+        }
+
+        .post-language :global(.language-switch) {
+          width: 44px;
+          height: 44px;
+        }
+      }
+
       .post-footer a {
         color: var(--theme-accent);
       }
@@ -324,11 +372,12 @@ const prevUrl =
               ><AstroLogo size={40} />
             </a>
             <span
+              class="post-title-text"
               data-pagefind-body={isCanonicalRoute ? true : undefined}
               data-pagefind-meta="title">{title}</span
             >
             <Search locale={locale} />
-            <span class="ml-3 inline-flex items-center md:hidden"
+            <span class="post-language ml-3 inline-flex items-center md:hidden"
               ><LanguageSwitch locale={locale} href={alternateUrl} /></span
             >
           </h1>

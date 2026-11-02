@@ -36,7 +36,7 @@ const pageURL = locale === "en" ? `${SITE.homePage}/en/` : SITE.homePage;
     <Header locale={locale} />
     {
       allPosts.length ? (
-        <main class="mx-auto -mt-5 mb-12 box-border w-full max-w-xl px-3 md:max-w-2xl md:px-0 lg:max-w-5xl xl:max-w-7xl">
+        <main class="mx-auto mb-12 box-border w-full max-w-xl px-4 md:-mt-5 md:max-w-2xl md:px-0 lg:max-w-5xl xl:max-w-7xl">
           <div class="grid md:-mr-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {allPosts.map((post, index) => (
               <Card post={post} locale={locale} priority={index === 0} />

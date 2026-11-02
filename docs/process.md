@@ -1,6 +1,6 @@
 # Process: Requirements and Outcomes
 
-Last updated: 2026-09-13
+Last updated: 2026-10-30
 
 ## Document Responsibilities
 
@@ -51,23 +51,23 @@ Entry shape:
 
 ## Current Work
 
-### R-20260913-01 Collaboration documentation and translation skill maintenance
+### R-20261029-01 Mobile homepage layout
 
-- Status: done
-- Goal: 优化 AGENTS.md、仓库翻译 Skill 和 process.md，修正文档之间及文档与实现之间的不一致。
+- Status: in_progress
+- Goal: 在 `feat/mobile-homepage` 分支优化中英文手机首页的导航、卡片和阅读层级。
 - Acceptance Criteria:
-  - 执行规则、运行说明、需求记录与翻译约定各有明确入口，历史记录按需加载且不丢失。
-  - 文档区分流程文档、文章内容和运行行为的验证要求；待办状态不会触发未请求的工作。
-  - 翻译按期号更新已有英文文件，保留发布日期、媒体链接和作者语气，并覆盖缺少日期及已有重复期号的处理。
-  - README 的 Docker 端口、开发域名及生产预览命令与仓库配置一致，PR 模板与验证规则一致。
-- Outcome: 明确 AGENTS、README、需求记录和翻译技能的职责；将原有 21 条历史和 16 条已完成需求完整移入 `process-archive.md`，后续按需加载。按文件用途区分文档、文章和运行行为的验证；翻译技能补齐按期号更新、防重号、日期处理及媒体保留规则。README 已按现有配置修正宿主机端口为 4322、开发域名为 `weekly.apartment.internal`，并提供使用 4323 端口的独立生产预览容器；同步 PR 模板。
+  - 320–430px 手机宽度下导航、标题、日期不挤压，无横向溢出。
+  - 首页 Logo 保持完整比例，不受链接内边距压缩；手机文章标题独占一行区域，英文长标题自然换行，导航按钮不挤占标题宽度。
+  - 手机卡片统一左右边距，图片保持比例，摘要两行且文字不被固定高度裁切。
+  - 保留桌面网格和数字文章链接，明暗主题及中英文均可使用。
+  - Docker Prettier、Astro check、生产构建通过；验证两种语言首页与数字文章页的手机及桌面生产预览。
+- Outcome: 已创建 `feat/mobile-homepage`；手机首页统一 16px 边距，导航缩小站点标题并扩大语言切换触控区域，限制 Logo 加载失败时的占位；卡片改为 16:9 图片、14px 圆角、独立日期行及自然高度的两行摘要。改动复用于中英文首页，桌面保留原有网格。
 - Validation:
-  - Docker Prettier 检查本次全部 6 个 Markdown 文件通过；`git diff --check` 通过。
-  - `quick_validate.py .agents/skills/weekly-translation` 通过；校验器缺少的 PyYAML 仅装入临时目录，没有修改项目依赖。
-  - 归档内容对比通过；20 个本地文档链接及锚点有效；49 对中英文文章期号唯一、发布日期一致。
+  - 2026-10-30 跟进：提高首页 Logo 链接尺寸规则的优先级，清除原有内边距并使用 `object-fit: contain`；手机文章页改为上方导航、下方全宽标题，保留原有标题文本及 Pagefind 元数据。
+  - 本次生产预览覆盖中英文首页与第 49 期文章的 320、375、430、1440px；手机 Logo 实测 32×32px、内边距 0，文章标题与容器等宽，无页面横向溢出。检查明暗主题，语言切换和返回首页链接可用。远程媒体仍未加载，保留媒体视觉验收限制。
   - `docker compose exec -T weekly npm run astro -- check`：0 errors / 0 warnings / 0 hints。
-  - `docker compose exec -T weekly npm run build`：198 pages；Pagefind 98 pages / 2 languages / 9040 words。虽然新规则允许纯文档修改免构建，本次仍按任务开始时的要求完成构建。
-  - 实际运行 README 的 `docker compose run --rm --no-deps -p 4323:4321 weekly npm run preview -- --host 0.0.0.0 --port 4321`；浏览器打开中英文首页及第 49 期文章，文本和语言切换可用，4 条页面路由及 Pagefind JS 返回 200。开发服务对两个当前允许的 Host 返回 200，对旧的 apartment Host 返回 403。
-- Follow-ups:
-  - 全局 `~/.agents/skills/blog-translator/SKILL.md` 仍有重复触发范围；仓库明确以 `weekly-translation` 为准，全局副本未在本次仓库修改中变更。
-  - 内置浏览器的远程图片未加载，抽查同一头图 URL 的独立 HTTP 请求返回 200；不能据此判定图片服务故障，本次未完成远程媒体的视觉验收。
+  - `docker compose exec -T weekly npm run build`：198 pages；Pagefind 98 pages / 2 languages / 9040 words。
+  - 独立 Docker 生产预览检查了中英文首页及 `/posts/49/`、`/en/posts/49/` 的手机与桌面布局；首页覆盖 320、375、430 和 1440px，窄屏未见横向溢出，桌面保留四列，49 个卡片链接均指向对应语言的数字路由。检查手机明暗主题。
+  - 远程图片在内置浏览器中未加载，图片占位比例已确认，实际照片裁切视觉验收未完成。文章页原有的远程图片问题仍存在。
+  - Prettier 检查全部 6 个改动文件通过；`git diff --check` 通过。
+- Follow-ups: 在可加载远程媒体的浏览器中确认照片裁切与 Logo 显示后完成视觉验收；当前保留 `in_progress`，未提交或推送。
