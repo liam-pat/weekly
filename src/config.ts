@@ -55,6 +55,10 @@ export const UI_COPY = {
     imagePreview: "圖片預覽",
     playLivePhoto: "播放 Live Photo",
     close: "關閉",
+    copyParagraphLink: "复制此段链接",
+    paragraphLinkCopied: "此段链接已复制",
+    paragraphLinkManual: "无法自动复制，请复制下方链接。",
+    paragraphLinkLabel: "段落链接",
   },
   en: {
     languageSwitchLabel: "中",
@@ -79,6 +83,11 @@ export const UI_COPY = {
     imagePreview: "Image preview",
     playLivePhoto: "Play Live Photo",
     close: "Close",
+    copyParagraphLink: "Copy paragraph link",
+    paragraphLinkCopied: "Paragraph link copied",
+    paragraphLinkManual:
+      "Automatic copying is unavailable. Copy the link below.",
+    paragraphLinkLabel: "Paragraph link",
   },
 } as const;
 

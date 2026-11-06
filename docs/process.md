@@ -1,6 +1,6 @@
 # Process: Requirements and Outcomes
 
-Last updated: 2026-10-30
+Last updated: 2026-11-06
 
 ## Document Responsibilities
 
@@ -50,6 +50,43 @@ Entry shape:
 ```
 
 ## Current Work
+
+### R-20261104-01 Paragraph sharing
+
+- Status: in_progress
+- Goal: 在 `feat/paragraph-share` 分支为中英文文章添加选中文字后复制段落链接的交互。
+- Acceptance Criteria:
+  - 正文同一段落内选中非空白文字后出现浮动按钮，包括双击选中的短词，适配明暗主题及桌面/手机边界；跨段、评论和导航不触发。
+  - 正文文字选区使用紫底白字，分享链接定位的整段使用淡紫色高亮。
+  - 复制当前语言的数字规范路由及段落定位信息，显示成功或失败反馈。
+  - 自动剪贴板接口不可用或被拒绝时尝试兼容复制；两种方式均失败时显示已选中的链接，允许手动复制，不显示虚假的成功反馈。
+  - 新页面打开链接后校验指定段落是否包含文字、定位并高亮整段；指定段落不匹配时仅回退到唯一匹配段落，支持页面内 hash 变化。文章编辑后段落序号变化且新位置包含相同文字的误定位风险按下述约定保留。
+  - 取消选区、滚动或 Esc 关闭按钮，支持键盘操作；原有正文、搜索、图片预览与中英文导航可用。
+  - Docker Prettier、Astro check、生产构建通过，并检查中英文首页和文章页的桌面/手机生产预览与实际复制链接流程。
+- Outcome: 已在 `feat/paragraph-share` 独立实现 `ParagraphShare.astro`，共享文章布局接入，中英文提示复用配置；无新增项目依赖。链接使用当前站点的数字规范路由和 `#p=段落序号&q=文字`，高亮整段，图片/字体加载时最多跟随布局 8 秒，用户主动操作立即停止位置校正。支持键盘 Tab 聚焦、选区保存、复制反馈及同页 hash 切换。
+- Validation:
+  - `docker compose exec -T weekly npm run astro -- check`：32 files，0 errors / 0 warnings / 0 hints。
+  - `docker compose exec -T weekly npm exec --no -- prettier --check src/components/ParagraphShare.astro src/layouts/post.astro src/config.ts docs/process.md`：通过；`git diff --check` 通过。
+  - `docker compose exec -T weekly npm run build`：通过，198 pages；Pagefind 98 pages / 2 languages / 9040 words。
+  - 容器临时目录安装 jsdom，使用临时脚本 `/tmp/weekly-paragraph-share-test.cjs` 执行 40 项断言：中文/英文选区、规范链接、重新打开后定位、键盘聚焦与 Esc、滚动关闭、跨段/标题排除、复制失败、重复文字、失效/畸形链接、换行匹配、hash 切换和手机按钮边界均通过。布局及剪贴板 API 使用模拟，不能替代真实浏览器验收；未改变项目依赖。
+  - 独立生产预览运行于 `http://localhost:4323`；通过该地址检查 `/`、`/en/`、`/posts/49/`、`/en/posts/49/` 均为 HTTP 200，分享组件仅出现在文章页。
+  - 浏览器预览服务报 `The browser access host is unavailable`，原生 Chrome 控制报 `cgWindowNotFound`；真实桌面/手机、明暗主题视觉与系统剪贴板端到端验证未完成，因此保留 `in_progress`。
+  - 2026-11-04 错误跟进：开发服务曾返回 HTTP 500 / `Could not import ../components/ParagraphShare.astro`，确认组件在容器内存在且可读；`docker compose restart weekly` 后恢复，无需修改组件源码。重启期间自动生产构建及 Pagefind 通过；重新检查开发服务中英文首页/文章页 HTTP 200，组件脚本和样式正常返回，4323 生产预览四个路由亦为 HTTP 200。与开发服务热更新状态异常一致，具体触发原因尚未确定。
+  - 2026-11-04 复制失败跟进：在 `http://weekly.orb.local/posts/49/` 实际复现旧版失败提示。组件新增 `execCommand("copy")` 兼容路径和原生手动复制对话框；中文/英文均保留规范链接。自动接口不存在、拒绝请求、兼容复制返回 false/抛异常等路径的临时 jsdom 回归脚本 `/tmp/weekly-copy-regression.cjs` 共 88 项断言通过；无新增项目依赖。
+  - 修复后的 Docker Astro check：0 errors / 0 warnings / 1 hint，提示兼容路径的 `execCommand` 已弃用；生产构建通过（198 pages，Pagefind 98 pages / 2 languages / 9040 words）。
+  - 内置浏览器恢复连接后，已验证 HTTP 本地域名和生产预览的复制成功提示；生产预览中英文按钮、中文段落链接定位高亮、375px 手机英文浅色/中文深色布局可用且无横向溢出。浏览器自动化的虚拟剪贴板未接收到系统复制内容，无法据此验证系统粘贴；手动复制对话框目前通过模拟测试，实际浏览器失败路径及实体触屏操作仍待验证。
+  - 中断后发现 OrbStack 停止，已启动并恢复开发容器；确认不存在预览容器后，将失效的 `.astro/preview.json` 移到 `/tmp/weekly-stale-preview.json`，恢复 4323 独立预览。开发模式曾出现旧依赖 URL 与 WebSocket 错误，最终验证使用独立生产预览。
+  - 2026-11-05 简化与复查：合并自动/兼容复制为 `copyLink`，删除随后必定清除或替换的选区保存/恢复逻辑；统一关闭按钮时取消显示计时器，避免重复字符转换。复制开始立即收起按钮，复制未结束或手动对话框打开时不重新显示。临时回归脚本在旧版本复现了等待复制期间关闭按钮后被 `pointerup` 再次唤出的问题，新版本通过。
+  - 本轮 Docker Prettier、`git diff --check`、Astro check（0 errors / 0 warnings / 1 个兼容复制弃用 hint）和生产构建通过；Pagefind 98 pages / 2 languages / 9040 words。临时脚本 `/tmp/weekly-copy-regression.cjs` 的 88 项复制路径断言和 `/tmp/weekly-share-review.cjs` 的 43 项键盘、关闭计时、异步复制、手动对话框、链接匹配及 Unicode 断言均通过；未新增项目依赖。
+  - 本轮 4323 生产预览的中英文首页、第 49 期数字文章路由及本地脚本均返回 HTTP 200，组件范围与规范路径正确。浏览器工具再次报 `The browser access host is unavailable`，原生 Chrome 报 `cgWindowNotFound`，无法重做本轮桌面/手机视觉与系统剪贴板验收。检查后开发脚本出现 `504 Outdated Optimize Dep`，重启开发容器后复查 4322/4323 上述四个路由及所有 HTML 引用的本地脚本均为 HTTP 200。
+  - 2026-11-05 配色调整：正文 `::selection` 改为紫色 `#7c3aed` 背景与白字，对比度约 5.7:1；分享链接定位高亮改为同色 16% 透明背景。Docker Prettier、Astro check（0 errors / 0 warnings / 既有 1 hint）、生产构建通过；4323 中英文首页和第 49 期文章返回 HTTP 200，文章加载的生产 CSS 包含新选区样式。浏览器工具仍不可用，本轮明暗主题、桌面/手机视觉确认未完成。
+  - 2026-11-05 双击/整行选择修复：真实浏览器复现双击「能見度」被四字符门槛过滤，以及选择 `router: dae` 整行时选区包含列表项后的换行、被误判跨段。取消最少字符数限制并同步短文字链接校验；仅当段落外部分为空白时裁去尾部边界，真正跨到下一项文字仍不触发。
+  - 本轮 Docker Prettier、`git diff --check`、Astro check（0 errors / 0 warnings / 既有 1 hint）及生产构建通过。临时脚本 `/tmp/weekly-doubleclick-regression.cjs` 63 项断言与原复制路径 88 项断言通过，覆盖短词、空白、短词链接、歧义保护及列表换行边界。生产预览中确认双击 `dae` 和选中 `router: dae` 整行可显示按钮，英文整行复制显示成功反馈；1280px/375px 中英文首页及文章页无横向溢出，手机宽度按钮在视口内。实体触屏与系统粘贴限制仍保留。
+  - 本轮收尾：4323 四个路由及本地脚本检查通过；4322 页面和文章脚本正常，但 Astro 开发工具栏入口仍返回 `504 Outdated Optimize Dep`，两次重启后未恢复。功能验收使用 4323 生产预览，开发工具栏缓存问题待独立排查。
+  - 2026-11-06 提交前复查：重新审阅全部四个改动文件，63 项选区/链接回归与 88 项复制路径回归通过；Astro check 为 0 errors / 0 warnings / 既有 1 hint，生产构建通过（198 pages；Pagefind 98 pages / 2 languages / 9040 words）。浏览器工具仍报 `The browser access host is unavailable`，本轮未重做真实浏览器视觉和系统粘贴；沿用 2026-11-05 相同源码的桌面/手机生产预览结果。
+- Accepted trade-off (2026-11-06): 用户确认暂不增加段落指纹，也不缩短链接；引用文字最多保留 160 个 Unicode 码点。旧文章增删段落后，如果原序号的新段落恰好包含相同引用文字，旧链接可能定位到该段落；这是当前序号加文字校验方案的已接受限制。
+  - 最终 Prettier 与 `git diff --check` 通过；4323 生产预览的中英文首页、第 49 期文章及引用的本地脚本均为 HTTP 200，组件范围和规范路径正确。容器使用 `host.docker.internal` 访问预览被主机名校验拒绝（403），改用允许的 `localhost` 地址后通过。
+- Follow-ups: 用户已授权提交 PR；在实际访问地址确认系统粘贴、失败时手动复制和实体触屏体验后标记完成。PR 不代表这些人工验收已完成。
 
 ### R-20261029-01 Mobile homepage layout
 

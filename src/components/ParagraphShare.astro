@@ -1,0 +1,377 @@
+---
+import { UI_COPY, type Locale } from "@/config";
+
+interface Props {
+  locale: Locale;
+  canonicalPath: string;
+}
+const { locale, canonicalPath } = Astro.props;
+const copy = UI_COPY[locale];
+---
+
+<paragraph-share
+  data-path={canonicalPath}
+  data-success={copy.paragraphLinkCopied}
+  data-pagefind-ignore
+>
+  <button type="button" class="paragraph-share-button" hidden>
+    {copy.copyParagraphLink}
+  </button>
+  <span
+    class="paragraph-share-status"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"></span>
+  <dialog
+    class="paragraph-share-dialog"
+    aria-labelledby="paragraph-share-title"
+  >
+    <h2 id="paragraph-share-title">{copy.copyParagraphLink}</h2>
+    <p>{copy.paragraphLinkManual}</p>
+    <input type="text" readonly aria-label={copy.paragraphLinkLabel} />
+    <form method="dialog"><button type="submit">{copy.close}</button></form>
+  </dialog>
+</paragraph-share>
+
+<script>
+  class ParagraphShare extends HTMLElement {
+    connectedCallback() {
+      const article = document.getElementById("article-content");
+      const button = this.querySelector("button");
+      const status = this.querySelector<HTMLElement>("[role=status]");
+      const manualDialog = this.querySelector("dialog");
+      const manualInput = this.querySelector("input");
+      if (!article || !button || !status || !manualDialog || !manualInput)
+        return;
+      let copying = false;
+
+      const normalize = (text: string) => text.replace(/\s+/gu, " ").trim();
+      // Only leaf text blocks: nested list items must not identify two targets.
+      const selector = "p, li, small, blockquote";
+      const blocks = Array.from(
+        article.querySelectorAll<HTMLElement>(selector),
+      ).filter(
+        (block) => !block.querySelector(selector) && !block.closest("pre"),
+      );
+      const blockText = (block: HTMLElement) => {
+        const content = block.cloneNode(true) as HTMLElement;
+        // Selection text includes line breaks; textContent alone drops <br>.
+        content
+          .querySelectorAll("br")
+          .forEach((lineBreak) => lineBreak.replaceWith(" "));
+        return normalize(content.textContent || "");
+      };
+      const hide = () => {
+        clearTimeout(selectionTimer);
+        button.hidden = true;
+        pendingSelection = undefined;
+      };
+      let noticeTimer: ReturnType<typeof setTimeout>;
+      let selectionTimer: ReturnType<typeof setTimeout>;
+      let stopFollowing = () => {};
+      let highlighted: HTMLElement | undefined;
+
+      const announce = (message: string) => {
+        clearTimeout(noticeTimer);
+        status.textContent = message;
+        status.classList.add("visible");
+        noticeTimer = setTimeout(() => {
+          status.classList.remove("visible");
+          status.textContent = "";
+        }, 2200);
+      };
+
+      const readSelection = () => {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed || selection.rangeCount !== 1)
+          return;
+        const range = selection.getRangeAt(0).cloneRange();
+        const block = blocks.find((item) =>
+          item.contains(range.startContainer),
+        );
+        if (!block) return;
+        if (!block.contains(range.endContainer)) {
+          // Whole-line selection can include the newline after the block.
+          const remainder = range.cloneRange();
+          remainder.setStartAfter(block);
+          if (normalize(remainder.toString())) return;
+          range.setEnd(block, block.childNodes.length);
+        }
+        const text = normalize(selection.toString());
+        if (!text || !blockText(block).includes(text)) return;
+        return { block, range, text: Array.from(text).slice(0, 160).join("") };
+      };
+      let pendingSelection: ReturnType<typeof readSelection>;
+
+      const show = () => {
+        if (copying || manualDialog.open) return;
+        const selected = readSelection();
+        if (!selected) return hide();
+        const rects = Array.from(selected.range.getClientRects()).filter(
+          (rect) => rect.width > 0 && rect.height > 0,
+        );
+        const rect = rects.at(-1);
+        if (!rect || rect.bottom < 0 || rect.top > innerHeight) return hide();
+        pendingSelection = selected;
+        button.hidden = false;
+        const margin = 12;
+        const gap = 10;
+        const width = button.offsetWidth;
+        const height = button.offsetHeight;
+        const touch = matchMedia("(pointer: coarse)").matches;
+        let top = touch ? rect.bottom + gap : rect.top - height - gap;
+        if (top < margin) top = rect.bottom + gap;
+        if (top + height > innerHeight - margin) top = rect.top - height - gap;
+        const left = Math.min(
+          innerWidth - width - margin,
+          Math.max(margin, rect.left + (rect.width - width) / 2),
+        );
+        button.style.left = `${Math.max(margin, left)}px`;
+        button.style.top = `${Math.max(margin, Math.min(top, innerHeight - height - margin))}px`;
+      };
+
+      document.addEventListener("selectionchange", () => {
+        clearTimeout(selectionTimer);
+        if (copying || manualDialog.open) return;
+        // Focusing a button can collapse the native selection in some browsers.
+        if (document.activeElement === button && pendingSelection) return;
+        if (!readSelection()) return hide();
+        selectionTimer = setTimeout(show, 120);
+      });
+      document.addEventListener("pointerup", (event) => {
+        if (!this.contains(event.target as Node)) {
+          clearTimeout(selectionTimer);
+          selectionTimer = setTimeout(show, 0);
+        }
+      });
+      document.addEventListener("pointerdown", (event) => {
+        if (!this.contains(event.target as Node)) hide();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          hide();
+          button.blur();
+        }
+        // Make the action reachable immediately after keyboard text selection.
+        if (
+          event.key === "Tab" &&
+          !event.shiftKey &&
+          !button.hidden &&
+          document.activeElement !== button &&
+          readSelection()
+        ) {
+          event.preventDefault();
+          button.focus({ preventScroll: true });
+        }
+      });
+      window.addEventListener("scroll", hide, { passive: true });
+      window.addEventListener("resize", hide);
+      manualInput.addEventListener("click", () => manualInput.select());
+
+      const copyLink = async (text: string) => {
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        } catch {
+          // A denied Clipboard API request can still allow the selection fallback.
+        }
+        const field = document.createElement("textarea");
+        field.value = text;
+        field.readOnly = true;
+        field.tabIndex = -1;
+        field.style.cssText =
+          "position:fixed;top:0;left:0;opacity:0;font-size:16px;pointer-events:none";
+        document.body.append(field);
+        try {
+          field.focus({ preventScroll: true });
+          field.select();
+          // Compatibility fallback for HTTP local domains and older browsers.
+          return document.execCommand("copy");
+        } catch {
+          return false;
+        } finally {
+          field.remove();
+        }
+      };
+
+      button.addEventListener("pointerdown", (event) => event.preventDefault());
+      button.addEventListener("click", async () => {
+        if (copying) return;
+        const selected =
+          readSelection() ||
+          (document.activeElement === button ? pendingSelection : undefined);
+        if (!selected) return hide();
+        const url = new URL(
+          this.dataset.path || location.pathname,
+          location.origin,
+        );
+        url.hash = `p=${blocks.indexOf(selected.block) + 1}&q=${encodeURIComponent(selected.text)}`;
+        copying = true;
+        hide();
+        const copied = await copyLink(url.href);
+        copying = false;
+        if (copied) {
+          announce(this.dataset.success || "");
+          window.getSelection()?.removeAllRanges();
+        } else {
+          manualInput.value = url.href;
+          manualDialog.showModal();
+          manualInput.focus({ preventScroll: true });
+          manualInput.select();
+        }
+      });
+
+      const reveal = () => {
+        stopFollowing();
+        highlighted?.classList.remove("paragraph-share-target");
+        highlighted = undefined;
+        const params = new URLSearchParams(location.hash.slice(1));
+        const query = normalize(params.get("q") || "");
+        const position = params.get("p") || "";
+        if (!query || query.length > 640) return;
+        let target = /^[1-9]\d*$/.test(position)
+          ? blocks[Number(position) - 1]
+          : undefined;
+        if (!target || !blockText(target).includes(query)) {
+          const candidates = blocks.filter((block) =>
+            blockText(block).includes(query),
+          );
+          target = candidates.length === 1 ? candidates[0] : undefined;
+        }
+        if (!target) return;
+        highlighted = target;
+        target.classList.add("paragraph-share-target");
+        const scrollToTarget = () =>
+          target.scrollIntoView({ block: "center", behavior: "instant" });
+        scrollToTarget();
+
+        // Follow layout changes caused by images/fonts, but never fight the reader.
+        const controller = new AbortController();
+        const observer = new ResizeObserver(scrollToTarget);
+        observer.observe(article);
+        const timeout = setTimeout(() => stopFollowing(), 8000);
+        stopFollowing = () => {
+          clearTimeout(timeout);
+          observer.disconnect();
+          controller.abort();
+        };
+        for (const event of ["wheel", "touchstart", "pointerdown", "keydown"]) {
+          window.addEventListener(event, () => stopFollowing(), {
+            passive: true,
+            signal: controller.signal,
+            once: true,
+          });
+        }
+      };
+      window.addEventListener("hashchange", reveal);
+      // Let existing article typography enhancements finish before matching text.
+      requestAnimationFrame(reveal);
+    }
+  }
+  customElements.define("paragraph-share", ParagraphShare);
+</script>
+
+<style>
+  .paragraph-share-button,
+  .paragraph-share-status {
+    position: fixed;
+    z-index: 60;
+    border: 0;
+    border-radius: 999px;
+    background: var(--theme-text);
+    color: var(--theme-bg);
+    box-shadow: 0 4px 14px rgb(0 0 0 / 18%);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 8px 16px;
+    max-width: calc(100vw - 24px);
+  }
+  .paragraph-share-button {
+    min-height: 36px;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .paragraph-share-button[hidden] {
+    display: none;
+  }
+  .paragraph-share-button:focus-visible {
+    outline: 2px solid var(--theme-accent);
+    outline-offset: 4px;
+  }
+  .paragraph-share-status {
+    bottom: max(32px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms;
+  }
+  .paragraph-share-status.visible {
+    opacity: 1;
+  }
+  .paragraph-share-dialog {
+    margin: auto;
+    width: min(440px, calc(100vw - 32px));
+    padding: 24px;
+    border: 1px solid var(--theme-divider);
+    border-radius: 16px;
+    background: var(--theme-bg);
+    color: var(--theme-text);
+  }
+  .paragraph-share-dialog::backdrop {
+    background: rgb(0 0 0 / 40%);
+  }
+  .paragraph-share-dialog h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+  }
+  .paragraph-share-dialog p {
+    margin: 0 0 16px;
+  }
+  .paragraph-share-dialog input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--theme-divider);
+    border-radius: 6px;
+    background: var(--theme-bg);
+    color: var(--theme-text);
+    font-size: 16px;
+  }
+  .paragraph-share-dialog form {
+    margin-top: 16px;
+    text-align: right;
+  }
+  .paragraph-share-dialog button {
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--theme-text);
+    color: var(--theme-bg);
+    cursor: pointer;
+  }
+  :global(#article-content::selection),
+  :global(#article-content ::selection) {
+    background: #7c3aed;
+    color: #fff;
+  }
+  :global(#article-content .paragraph-share-target) {
+    background: rgb(124 58 237 / 16%);
+    box-shadow: 0 0 0 6px rgb(124 58 237 / 16%);
+    border-radius: 4px;
+  }
+  @media (pointer: coarse) {
+    .paragraph-share-button {
+      min-height: 44px;
+      padding: 11px 16px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .paragraph-share-status {
+      transition: none;
+    }
+  }
+</style>
