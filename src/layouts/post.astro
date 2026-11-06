@@ -9,6 +9,7 @@ import LeftSidebar from "../components/LeftSidebar.astro";
 import Search from "../components/Header/Search.astro";
 import LanguageSwitch from "../components/LanguageSwitch.astro";
 import ArticleEnhancements from "../components/ArticleEnhancements.astro";
+import ParagraphShare from "../components/ParagraphShare.astro";
 import {
   SITE,
   SITE_I18N,
@@ -533,6 +534,7 @@ const prevUrl =
       </div>
     </dialog>
     <ArticleEnhancements />
+    <ParagraphShare locale={locale} canonicalPath={canonicalPath} />
     <Footer />
   </body>
 </html>
