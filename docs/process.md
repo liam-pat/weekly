@@ -1,6 +1,6 @@
 # Process: Requirements and Outcomes
 
-Last updated: 2026-11-06
+Last updated: 2026-11-12
 
 ## Document Responsibilities
 
@@ -108,3 +108,15 @@ Entry shape:
   - 远程图片在内置浏览器中未加载，图片占位比例已确认，实际照片裁切视觉验收未完成。文章页原有的远程图片问题仍存在。
   - Prettier 检查全部 6 个改动文件通过；`git diff --check` 通过。
 - Follow-ups: 在可加载远程媒体的浏览器中确认照片裁切与 Logo 显示后完成视觉验收；当前保留 `in_progress`，未提交或推送。
+
+### R-20261112-01 Repository translation skill ownership
+
+- Status: done
+- Goal: 将集中评审的翻译 skill 放回本项目维护，Looma 仅维护通用 skill。
+- Acceptance Criteria:
+  - 项目现有 weekly-translation 入口保留，包含已确认适用的翻译修复。
+  - 去掉跨项目兼容流程；缺省日期规则与 astro.config.mjs 实现一致。
+  - Looma 不再保留本项目 skill 副本；Markdown 格式、元数据和引用检查通过。
+- Outcome: 已将评审后的 skill 迁回 weekly-translation，保留项目入口与适用修复；Looma 副本已移除，通用维护规则留在 Looma。
+- Validation: Docker 临时容器中的项目 Prettier 已格式化文件；YAML/命名、引用、源码一致性及 git diff --check 检查通过。仅修改 skill 和文档，按 AGENTS.md 不要求站点构建。
+- Follow-ups: 无；本次仅整理本地文件，未提交或推送。
